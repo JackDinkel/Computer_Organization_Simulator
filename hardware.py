@@ -14,7 +14,9 @@
 
 
 
-# General Functions
+##### Hardware ######
+
+## General ##
 def MUX(input1, input2, control):
   assert control == 0 or control == 1, "control out of bounds: %s" % control
 
@@ -24,43 +26,65 @@ def MUX(input1, input2, control):
     return input2
 
 
+class Register(object):
+  __value = 0
 
-##### Hardware ######
-
-## Instruction Fetch ##
-def PC_Input_Mux(incremented, jump, PCSrc):
-  return MUX(incremented, jump, PCSrc)
-
-class PC:
-  __pc = 0
-
-  def __init__(self, init_val):
-    self.__pc = init_val
+  def __init__(self):
+    self.__value = 0
 
   def Update(self, new_val):
     assert new_val >= 0x0 and new_val <= 0xFFFFFFFF, "new_val out of bounds: %s" % new_val
-    self.__pc = new_val
+    self.__value = new_val
 
   def Get(self):
-    return self.__pc
+    return self.__value
 
-class Instruction_Memory:
+
+class Memory(object):
   # A list of all instructions
-  __Memory = []
+  __data = []
 
-  def Fetch_Instruction(self, address):
-    assert len(self.__Memory) > 0, "Instruction Memory is empty!"
-    assert address >= 0 and address < len(self.__Memory), "address out of bounds: %s" % address
-    return self.__Memory[address]
+  def Fetch_Word(self, address):
+    assert len(self.__data) > 0, "Memory is empty!"
+    assert address >= 0 and address < len(self.__data), "address out of bounds: %s" % address
+    return self.__data[address]
+    
+  def Add_Word(self, data):
+    assert data >= 0x0 and data <= 0xFFFFFFFF, "data out of bounds: %s" % data
 
-  def Add_New_Instruction(self, instr):
-    assert instr >= 0x0 and instr <= 0xFFFFFFFF, "instr out of bounds: %s" % instr
+    # A word is 4 bytes, simulate this by having 3 empty slots
+    # NOTE: would it be better to split this up by word? Other ideas? See above.
+    #       What if we make the memories a fixed size of registers.
+    #       Then, each register can have byte operations (that just use masking).
+    #       Divide by four when doing a memory operation and it all should work...
+    self.__data.append(data)
+    self.__data.append(0)
+    self.__data.append(0)
+    self.__data.append(0)
 
-    # Instructions are 4 bytes, simulate this by having 3 empty slots
-    self.__Memory.append(instr)
-    self.__Memory.append(0)
-    self.__Memory.append(0)
-    self.__Memory.append(0)
+  def Load_Word(self, address, data):
+    assert len(self.__data) > 0, "Memory is empty!"
+    assert address >= 0 and address < len(self.__data), "address out of bounds: %s" % address
+    assert data >= 0x0 and data <= 0xFFFFFFFF, "data out of bounds: %s" % data
+    self.__data[address] = data
+
+
+
+## Instruction Fetch ##
+def PC_Input_Mux(incremented, branch_addr, jump_addr, Branch, Jump):
+  # TODO: This needs a closer look, page 271
+  mux1 = MUX(incremented, branch_addr, Branch)
+  return MUX(mux1, jump_addr, Jump)
+
+
+class PC(Register):
+  pass
+  # TODO: Do we need a bunch of addwords if this isn't initialized to 0?
+  # TODO: If so, does that need to happen for the memories as well?
+
+
+class Instruction_Memory(Memory):
+  pass
 
 def Add_Four(input_num):
   #TODO: Error bounds
@@ -71,52 +95,67 @@ def Register_Input_Mux(i_type_reg, r_type_reg, RegDst):
   
 
 ## Instruction Decode and Register File Read ##
-class Register_File:
-  class Register:
-    __value = 0
-
-    def __init__(self):
-      self.__value = 0
-
-  register_list = []
+class Register_File(object):
+  __register_list = []
 
   def __init__(self):
-    for _ in len(range(32)):
-      # Initialize list of 32 registers
-      self.register_list = [ Register() for _ in range(32) ]
+    # Initialize list of 32 registers
+    self.__register_list = [ Register() for _ in range(32) ]
   
   def Operate(self, read_reg_1, read_reg_2, write_reg, write_data, RegWrite):
     assert read_reg_1 >= 0 and read_reg_1 < 32, "read_reg_1 out of bounds: %d" % read_reg_1
     assert read_reg_2 >= 0 and read_reg_2 < 32, "read_reg_2 out of bounds: %d" % read_reg_2
     assert write_reg  >= 0 and write_reg  < 32, "write_reg out of bounds: %d" % write_reg
-    #TODO: assert write_data in range
+    assert write_data >= 0x0 and write_data <= 0xFFFFFFFF, "write_data out of bounds: %s" % write_data
+    assert RegWrite == 0 or RegWrite == 1, "RegWrite out of bounds: %s" % RegWrite
 
-    #return read_data_1, read_data_2
+    if RegWrite:
+      self.__register_list[write_reg].Update(write_data)
+
+    read_data_1 = self.__register_list[read_reg_1]
+    read_data_2 = self.__register_list[read_reg_2]
+
+    return read_data_1, read_data_2
 
 def Sign_Extend(input_num):
-  # Return a 32 bit sign extended number
-  pass
+  # TODO: Return a 32 bit sign extended number
+  return input_num
 
 
 ## Execute and Address Calculation ##
 def ALU_Input_Mux(register, sign_extended, ALUSrc):
   return MUX(register, sign_extended, ALUSrc)
 
-def ALU(input1, input2, ALUOperation):
-  pass
+def ALU(input1, input2, ALUControl):
+  # TODO: How does this interface with ALU Control? What is the zero Zero line on page 265?
+  return 0, 0
 
 def Shift_Left_2(unshifted_num):
   return unshifted_num << 2
+
+def Calculate_Jump_Addr(unshifted_num, next_pc):
+  # This takes the place of the shift left 2 and concatenation components on page 271
+  # TODO: assert unshifted_num is in bounds (26 bits)
+  mask = 0xF0000000
+  pc_upper = next_pc & mask
+  return (unshifted_num << 2) & mask
 
 def Address_Adder(next_pc, shifted_num):
   return next_pc + shifted_num
 
 
 ## Memory Access ##
-class Data_Memory:
-  def Operate(self, address, write_data, MemWrite, MemRead):
-    # return read_data
-    pass
+class Data_Memory(Memory):
+  def Operate(self, address, write_data, MemRead, MemWrite):
+    read_data = 0
+
+    if MemRead:
+      read_data = Memory.Fetch_Word(address)
+    if MemWrite:
+      Memory.Load_Word(address, write_data)
+
+    return read_data
+
 
 ## Write Back ##
 def Write_Back_Mux(Read_Data, ALU_Result, MemToReg):
