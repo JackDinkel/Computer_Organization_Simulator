@@ -159,4 +159,4 @@ class Data_Memory(Memory):
 
 ## Write Back ##
 def Write_Back_Mux(Read_Data, ALU_Result, MemToReg):
-  return MUX(Read_Data, ALU_Result, MemToReg)
+  return MUX(ALU_Result, Read_Data, MemToReg)

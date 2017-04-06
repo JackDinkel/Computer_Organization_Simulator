@@ -11,7 +11,7 @@ def test_mux():
 
 def test_PC():
   v = 0
-  mypc = HW.PC(v)
+  mypc = HW.PC()
   assert mypc.Get() == v
 
   v = 400
