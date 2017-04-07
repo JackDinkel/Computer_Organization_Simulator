@@ -1,40 +1,84 @@
-# A dictionary relating the operations to their opcode and funct values
-op_dict = {
-  "nop"   : [          ],
-  "sll"   : [0x00, 0x00],
-  "srl"   : [0x00, 0x02],
-  "jr"    : [0x00, 0x08],
-  "add"   : [0x00, 0x20],
-  "addu"  : [0x00, 0x21],
-  "sub"   : [0x00, 0x22],
-  "subu"  : [0x00, 0x23],
-  "and"   : [0x00, 0x24],
-  "or"    : [0x00, 0x25],
-  "nor"   : [0x00, 0x27],
-  "slt"   : [0x00, 0x2A],
-  "sltu"  : [0x00, 0x2B],
-  "movn"  : [          ],
-  "movz"  : [          ],
-  "xor"   : [          ],
-  "j"     : [0x02, 0x00],
-  "jal"   : [0x03, 0x00],
-  "beq"   : [0x04, 0x00],
-  "bne"   : [0x05, 0x00],
-  "addi"  : [0x08, 0x00],
-  "addiu" : [0x09, 0x00],
-  "slti"  : [0x0A, 0x00],
-  "sltiu" : [0x0B, 0x00],
-  "andi"  : [0x0C, 0x00],
-  "ori"   : [0x0D, 0x00],
-  "lui"   : [0x0F, 0x00],
-  "lw"    : [0x23, 0x00],
-  "lbu"   : [0x24, 0x00],
-  "lhu"   : [0x25, 0x00],
-  "sb"    : [0x28, 0x00],
-  "sh"    : [0x29, 0x00],
-  "sw"    : [0x2B, 0x00],
-  "xori"  : [          ],
-  "bgtz"  : [          ],
-  "bltz"  : [          ],
-  "blez"  : [          ],
-}
+from enum import Enum
+
+def hi():
+  pass
+
+class OP(Enum):
+  #NOP   =     
+  #SLL   = 0x00
+  #SRL   = 0x00
+  #JR    = 0x00
+  #ADD   = 0x00
+  #ADDU  = 0x00
+  #SUB   = 0x00
+  #SUBU  = 0x00
+  #AND   = 0x00
+  #OR    = 0x00
+  #NOR   = 0x00
+  #SLT   = 0x00
+  #SLTU  = 0x00
+  #MOVN  =     
+  #MOVZ  =     
+  #XOR   =     
+  RTYPE = 0x00
+  J     = 0x02
+  JAL   = 0x03
+  BEQ   = 0x04
+  BNE   = 0x05
+  ADDI  = 0x08
+  ADDIU = 0x09
+  SLTI = 0x0A
+  SLTIU = 0x0B
+  ANDI  = 0x0C
+  ORI   = 0x0D
+  LUI   = 0x0F
+  LW    = 0x23
+  LBU   = 0x24
+  LHU   = 0x25
+  SB    = 0x28
+  SH    = 0x29
+  SW    = 0x2B
+  #XORI  =     
+  #BGTZ  =     
+  #BLTZ  =     
+  #BLEZ  =     
+
+class FUNCT(Enum):
+  #NOP   =     
+  SLL   = 0x00
+  SRL   = 0x02
+  JR    = 0x08
+  ADD   = 0x20
+  ADDU  = 0x21
+  SUB   = 0x22
+  SUBU  = 0x23
+  AND   = 0x24
+  OR    = 0x25
+  NOR   = 0x27
+  SLT   = 0x2A
+  SLTU  = 0x2B
+  #MOVN  =     
+  #MOVZ  =     
+  #XOR   =     
+  #J     = 0x00
+  #JAL   = 0x00
+  #BEQ   = 0x00
+  #BNE   = 0x00
+  #ADDI  = 0x00
+  #ADDIU = 0x00
+  #SLTI  = 0x00
+  #SLTIU = 0x00
+  #ANDI  = 0x00
+  #ORI   = 0x00
+  #LUI   = 0x00
+  #LW    = 0x00
+  #LBU   = 0x00
+  #LHU   = 0x00
+  #SB    = 0x00
+  #SH    = 0x00
+  #SW    = 0x00
+  ##XORI  =     
+  #BGTZ  =     
+  #BLTZ  =     
+  #BLEZ  =     
+

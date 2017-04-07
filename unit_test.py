@@ -1,6 +1,8 @@
 import hardware as HW
 import decode
 import pytest
+import single_cycle
+from register import RegEnum
 
 
 def test_mux():
@@ -102,3 +104,21 @@ def test_Shift_Left_2():
 def test_Data_Memory():
   #TODO
   pass
+
+
+
+def test_addi():
+  simulator = single_cycle.Single_Cycle()
+  simulator.Instruction_Memory.Add_Word(0x20C60005) # addi a2 a2 0x5
+  simulator.execute()
+
+
+  a2_val = simulator.Register_File.Get(RegEnum.a2)
+  assert a2_val == 0x05
+
+
+
+def test_sll():
+  simulator = single_cycle.Single_Cycle()
+  simulator.Instruction_Memory.Add_Word(0x00063080) # sll a2,a2,0x2
+  simulator.execute()

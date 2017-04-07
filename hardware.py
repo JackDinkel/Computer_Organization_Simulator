@@ -12,6 +12,7 @@
     it is actually needed, and multiplexors make the decisions
 '''
 
+from control import ALUEnum
 
 
 ##### Hardware ######
@@ -77,22 +78,29 @@ def PC_Input_Mux(incremented, branch_addr, jump_addr, Branch, Jump):
   return MUX(mux1, jump_addr, Jump)
 
 
+
 class PC(Register):
   pass
   # TODO: Do we need a bunch of addwords if this isn't initialized to 0?
   # TODO: If so, does that need to happen for the memories as well?
 
 
+
 class Instruction_Memory(Memory):
   pass
+
+
 
 def Add_Four(input_num):
   #TODO: Error bounds
   return input_num + 4
 
+
+
 def Register_Input_Mux(i_type_reg, r_type_reg, RegDst):
   return MUX(i_type_reg, r_type_reg, RegDst)
   
+
 
 ## Instruction Decode and Register File Read ##
 class Register_File(object):
@@ -101,7 +109,14 @@ class Register_File(object):
   def __init__(self):
     # Initialize list of 32 registers
     self.__register_list = [ Register() for _ in range(32) ]
-  
+
+  def GetList(self):
+    return self.__register_list
+
+  def Get(self, index):
+    assert index >= 0 and index < 32
+    return self.__register_list[index].Get()
+
   def Operate(self, read_reg_1, read_reg_2, write_reg, write_data, RegWrite):
     assert read_reg_1 >= 0 and read_reg_1 < 32, "read_reg_1 out of bounds: %d" % read_reg_1
     assert read_reg_2 >= 0 and read_reg_2 < 32, "read_reg_2 out of bounds: %d" % read_reg_2
@@ -117,6 +132,8 @@ class Register_File(object):
 
     return read_data_1, read_data_2
 
+
+
 def Sign_Extend(input_num):
   # TODO: Return a 32 bit sign extended number
   return input_num
@@ -126,12 +143,45 @@ def Sign_Extend(input_num):
 def ALU_Input_Mux(register, sign_extended, ALUSrc):
   return MUX(register, sign_extended, ALUSrc)
 
+
+
 def ALU(input1, input2, ALUControl):
   # TODO: How does this interface with ALU Control? What is the zero Zero line on page 265?
-  return 0, 0
+  if   ALUControl == ALUEnum.X:
+    return 0, 0
+  elif ALUControl == ALUEnum.AND:
+    return input1 & input2, 0
+  elif ALUControl == ALUEnum.OR:
+    return input1 | input2, 0
+  elif ALUControl == ALUEnum.ADD:
+    return input1 + input2, 0
+  elif ALUControl == ALUEnum.ADDU:
+    return input1 + input2, 0 # TODO
+  elif ALUControl == ALUEnum.SUB:
+    return input1 - input2, 0
+  elif ALUControl == ALUEnum.SUBU:
+    return input1 - input2, 0 # TODO
+  elif ALUControl == ALUEnum.SLL:
+    return input1 << input2, 0
+  elif ALUControl == ALUEnum.SRL:
+    return input1 >> input2, 0
+  elif ALUControl == ALUEnum.SLT:
+    return (input1 < input2), 0 # TODO
+  elif ALUControl == ALUEnum.NOT:
+    return ~input1, 0 # TODO
+  elif ALUControl == ALUEnum.LOAD:
+    return 0, 0, # TODO
+  elif ALUControl == ALUEnum.STORE:
+    return 0, 0 # TODO
+  else:
+    assert 1 == 2, "Invalid Operation: %s" % ALUControl
+
+
 
 def Shift_Left_2(unshifted_num):
   return unshifted_num << 2
+
+
 
 def Calculate_Jump_Addr(unshifted_num, next_pc):
   # This takes the place of the shift left 2 and concatenation components on page 271
@@ -140,8 +190,11 @@ def Calculate_Jump_Addr(unshifted_num, next_pc):
   pc_upper = next_pc & mask
   return (unshifted_num << 2) & mask
 
+
+
 def Address_Adder(next_pc, shifted_num):
   return next_pc + shifted_num
+
 
 
 ## Memory Access ##
@@ -155,6 +208,7 @@ class Data_Memory(Memory):
       Memory.Load_Word(address, write_data)
 
     return read_data
+
 
 
 ## Write Back ##
