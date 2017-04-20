@@ -102,10 +102,22 @@ def test_Register_File():
 
 
 
-@pytest.mark.skip()
 def test_Sign_Extend():
-  #TODO
-  pass
+  val1 = 0b1111111111110000 # -16
+  val2 = 0xFFFF # -1
+  val3 = 0xFFCE # -50
+  val4 = 0x0064 # 100
+  val5 = 0x0000 # 0
+
+  assert HW.Sign_Extend(val1) == 0b11111111111111111111111111110000
+  assert HW.Sign_Extend(val2) == 0b11111111111111111111111111111111
+  assert HW.Sign_Extend(val3) == 0b11111111111111111111111111001110
+  assert HW.Sign_Extend(val4) == 0b00000000000000000000000001100100
+  assert HW.Sign_Extend(val5) == 0b00000000000000000000000000000000
+
+  
+
+
 
 
 
@@ -167,3 +179,16 @@ def test_add_shift():
   assert a2_val == 0b10100
 
 
+
+@pytest.mark.skip()
+def test_signed_add():
+  instruction = 0x27bdfff0 # addiu sp,sp,-16
+  simulator = single_cycle.Single_Cycle()
+  simulator.Instruction_Memory.Add_Word(instruction)
+  simulator.cycle()
+
+  sp = REG_DICT["sp"]
+  sp_val = simulator.Register_File.Get(sp)
+  print simulator.decoder.i_imm
+  print sp_val
+  assert sp_val == -16
