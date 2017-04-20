@@ -1,4 +1,4 @@
-#import hardware as HW
+import hardware as HW
 import decode
 import pytest
 import single_cycle
@@ -120,8 +120,6 @@ def test_addi():
     print(r.Get())
 
   assert a2_val == 0x05
-
-test_addi()
 
 
 def test_sll():
