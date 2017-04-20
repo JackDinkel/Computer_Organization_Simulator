@@ -2,6 +2,7 @@ import hardware as HW
 import decode
 import pytest
 import single_cycle
+from control import ALU_DICT
 from register import REG_DICT
 
 
@@ -73,24 +74,76 @@ def test_Add_Four():
 
 
 
-@pytest.mark.skip()
 def test_Register_File():
-  #TODO
-  pass
+  f = HW.Register_File()
+
+  a1 = REG_DICT["a1"]
+  t1 = REG_DICT["t1"]
+  value = 0x100
+  RegWriteOn = 1
+  RegWriteOff = 0
+
+  # Check if a1 and t1 are zero
+  assert f.Operate(a1, t1, t1, value, RegWriteOff) == (0, 0)
+  assert f.Get(a1) == 0
+  assert f.Get(t1) == 0
+
+  # Load 0x100 into t1
+  # Check that a1 is 0 and t1 is 0x100
+  assert f.Operate(a1, t1, t1, value, RegWriteOn) == (0, value)
+  assert f.Get(a1) == 0
+  assert f.Get(t1) == value
+
+  # Check that a1 is 0 and t1 is 0x100
+  assert f.Operate(a1, t1, t1, value, RegWriteOff) == (0, value)
+  assert f.Get(a1) == 0
+  assert f.Get(t1) == value
 
 
 
-@pytest.mark.skip()
+
 def test_Sign_Extend():
-  #TODO
-  pass
+  val1 = 0b1111111111110000 # -16
+  val2 = 0xFFFF # -1
+  val3 = 0xFFCE # -50
+  val4 = 0x0064 # 100
+  val5 = 0x0000 # 0
+
+  assert HW.Sign_Extend(val1) == 0b11111111111111111111111111110000
+  assert HW.Sign_Extend(val2) == 0b11111111111111111111111111111111
+  assert HW.Sign_Extend(val3) == 0b11111111111111111111111111001110
+  assert HW.Sign_Extend(val4) == 0b00000000000000000000000001100100
+  assert HW.Sign_Extend(val5) == 0b00000000000000000000000000000000
+
+  
 
 
 
-@pytest.mark.skip()
+
+
 def test_ALU():
   #TODO
-  pass
+  input1 = 5
+  input2 = 2
+  shamt = 3
+
+  #assert HW.ALU(input1, input2, 0, ALU_DICT["X"])     == (0, 0) # TODO
+  assert HW.ALU(input1, input2, 0, ALU_DICT["AND"])   == (input1 & input2, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["OR"])    == (input1 | input2, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["ADD"])   == (input1 + input2, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["ADDU"])  == (input1 + input2, 0) # TODO
+  assert HW.ALU(input1, input2, 0, ALU_DICT["SUB"])   == (input1 - input2, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["SUBU"])  == (input1 - input2, 0) # TODO
+  assert HW.ALU(input1, input2,shamt,ALU_DICT["SLL"]) == (input2 << shamt, 0)
+  assert HW.ALU(input1, input2,shamt,ALU_DICT["SRL"]) == (input2 >> shamt, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["SLT"])   == (0, 0) # TODO
+  assert HW.ALU(input1, input2, 0, ALU_DICT["SLTU"])  == (0, 0) # TODO
+  assert HW.ALU(input1, input2, 0, ALU_DICT["NOT"])   == (~input1, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["LOAD"])  == (0, 0) # TODO
+  assert HW.ALU(input1, input2, 0, ALU_DICT["STORE"]) == (0, 0) # TODO
+  assert HW.ALU(input1, input2, 0, ALU_DICT["NOR"])   == (~(input1 | input2), 0) # TODO
+
+
 
 
 
@@ -107,22 +160,35 @@ def test_Data_Memory():
 
 
 
-@pytest.mark.skip()
-def test_addi():
+def test_add_shift():
+  instruction1 = 0x20C60005 # addi a2 a2 0x5
+  instruction2 = 0x00063080 # sll a2,a2,0x2
+  a2 = REG_DICT["a2"]
+
   simulator = single_cycle.Single_Cycle()
-  simulator.Instruction_Memory.Add_Word(0x20C60005) # addi a2 a2 0x5
-  simulator.execute()
+  simulator.Instruction_Memory.Add_Word(instruction1)
+  simulator.Instruction_Memory.Add_Word(instruction2)
+  simulator.cycle()
 
-
-  a2_val = simulator.Register_File.Get(REG_DICT["a2"])
-  print("a2_val", a2_val)
-  for r in simulator.Register_File.GetList():
-    print(r.Get())
-
+  # Check register
+  a2_val = simulator.Register_File.Get(a2)
   assert a2_val == 0x05
 
+  simulator.cycle()
+  a2_val = simulator.Register_File.Get(a2)
+  assert a2_val == 0b10100
 
-def test_sll():
+
+
+@pytest.mark.skip()
+def test_signed_add():
+  instruction = 0x27bdfff0 # addiu sp,sp,-16
   simulator = single_cycle.Single_Cycle()
-  simulator.Instruction_Memory.Add_Word(0x00063080) # sll a2,a2,0x2
-  simulator.execute()
+  simulator.Instruction_Memory.Add_Word(instruction)
+  simulator.cycle()
+
+  sp = REG_DICT["sp"]
+  sp_val = simulator.Register_File.Get(sp)
+  print simulator.decoder.i_imm
+  print sp_val
+  assert sp_val == -16
