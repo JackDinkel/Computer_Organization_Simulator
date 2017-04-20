@@ -1,6 +1,6 @@
 import hardware as HW
 import decode
-import control
+from control import Controller
 
 class Single_Cycle(object):
   # Address of the first instruction
@@ -9,7 +9,7 @@ class Single_Cycle(object):
   
   # Initialize helpers
   decoder    = decode.Decoder()
-  controller = control.Controller()
+  controller = Controller()
   
   
   # Initialize hardware
@@ -39,7 +39,7 @@ class Single_Cycle(object):
     
     # Instruction Decode and Register File Read
     self.decoder.decode(current_instr)
-    self.controller.update(self.decoder.op)
+    self.controller.update(self.decoder.op, self.decoder.funct)
     read_data_1, read_data_2 = self.Register_File.Operate(self.decoder.op, self.decoder.rs, self.decoder.rt, write_back, self.controller.RegWrite)
     
     # Execute and Adress Calculation

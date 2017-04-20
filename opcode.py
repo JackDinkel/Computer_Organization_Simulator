@@ -1,62 +1,59 @@
-from enum import Enum
 
-def hi():
-  pass
+OP_DICT = {
+  #"NOP"   :     
+  #"SLL"   : 0x00
+  #"SRL"   : 0x00
+  #"JR"    : 0x00
+  #"ADD"   : 0x00
+  #"ADDU"  : 0x00
+  #"SUB"   : 0x00
+  #"SUBU"  : 0x00
+  #"AND"   : 0x00
+  #"OR"    : 0x00
+  #"NOR"   : 0x00
+  #"SLT"   : 0x00
+  #"SLTU"  : 0x00
+  #"MOVN"  :     
+  #"MOVZ"  :     
+  #"XOR"   :     
+  "RTYPE" : 0x00,
+  "J"     : 0x02,
+  "JAL"   : 0x03,
+  "BEQ"   : 0x04,
+  "BNE"   : 0x05,
+  "ADDI"  : 0x08,
+  "ADDIU" : 0x09,
+  "SLTI"  : 0x0A,
+  "SLTIU" : 0x0B,
+  "ANDI"  : 0x0C,
+  "ORI"   : 0x0D,
+  "LUI"   : 0x0F,
+  "LW"    : 0x23,
+  "LBU"   : 0x24,
+  "LHU"   : 0x25,
+  "SB"    : 0x28,
+  "SH"    : 0x29,
+  "SW"    : 0x2B
+  #"XORI"  =     
+  #"BGTZ"  =     
+  #"BLTZ"  =     
+  #"BLEZ"  =     
+}
 
-class OP(Enum):
+FUNCT_DICT = {
   #NOP   =     
-  #SLL   = 0x00
-  #SRL   = 0x00
-  #JR    = 0x00
-  #ADD   = 0x00
-  #ADDU  = 0x00
-  #SUB   = 0x00
-  #SUBU  = 0x00
-  #AND   = 0x00
-  #OR    = 0x00
-  #NOR   = 0x00
-  #SLT   = 0x00
-  #SLTU  = 0x00
-  #MOVN  =     
-  #MOVZ  =     
-  #XOR   =     
-  RTYPE = 0x00
-  J     = 0x02
-  JAL   = 0x03
-  BEQ   = 0x04
-  BNE   = 0x05
-  ADDI  = 0x08
-  ADDIU = 0x09
-  SLTI = 0x0A
-  SLTIU = 0x0B
-  ANDI  = 0x0C
-  ORI   = 0x0D
-  LUI   = 0x0F
-  LW    = 0x23
-  LBU   = 0x24
-  LHU   = 0x25
-  SB    = 0x28
-  SH    = 0x29
-  SW    = 0x2B
-  #XORI  =     
-  #BGTZ  =     
-  #BLTZ  =     
-  #BLEZ  =     
-
-class FUNCT(Enum):
-  #NOP   =     
-  SLL   = 0x00
-  SRL   = 0x02
-  JR    = 0x08
-  ADD   = 0x20
-  ADDU  = 0x21
-  SUB   = 0x22
-  SUBU  = 0x23
-  AND   = 0x24
-  OR    = 0x25
-  NOR   = 0x27
-  SLT   = 0x2A
-  SLTU  = 0x2B
+  "SLL"   : 0x00,
+  "SRL"   : 0x02,
+  "JR"    : 0x08,
+  "ADD"   : 0x20,
+  "ADDU"  : 0x21,
+  "SUB"   : 0x22,
+  "SUBU"  : 0x23,
+  "AND"   : 0x24,
+  "OR"    : 0x25,
+  "NOR"   : 0x27,
+  "SLT"   : 0x2A,
+  "SLTU"  : 0x2B
   #MOVN  =     
   #MOVZ  =     
   #XOR   =     
@@ -81,4 +78,5 @@ class FUNCT(Enum):
   #BGTZ  =     
   #BLTZ  =     
   #BLEZ  =     
+}
 

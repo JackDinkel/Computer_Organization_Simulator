@@ -12,7 +12,7 @@
     it is actually needed, and multiplexors make the decisions
 '''
 
-from control import ALUEnum
+from control import ALU_DICT
 
 
 ##### Hardware ######
@@ -147,31 +147,31 @@ def ALU_Input_Mux(register, sign_extended, ALUSrc):
 
 def ALU(input1, input2, ALUControl):
   # TODO: How does this interface with ALU Control? What is the zero Zero line on page 265?
-  if   ALUControl == ALUEnum.X:
+  if   ALUControl == ALU_DICT["X"]:
     return 0, 0
-  elif ALUControl == ALUEnum.AND:
+  elif ALUControl == ALU_DICT["AND"]:
     return input1 & input2, 0
-  elif ALUControl == ALUEnum.OR:
+  elif ALUControl == ALU_DICT["OR"]:
     return input1 | input2, 0
-  elif ALUControl == ALUEnum.ADD:
+  elif ALUControl == ALU_DICT["ADD"]:
     return input1 + input2, 0
-  elif ALUControl == ALUEnum.ADDU:
+  elif ALUControl == ALU_DICT["ADDU"]:
     return input1 + input2, 0 # TODO
-  elif ALUControl == ALUEnum.SUB:
+  elif ALUControl == ALU_DICT["SUB"]:
     return input1 - input2, 0
-  elif ALUControl == ALUEnum.SUBU:
+  elif ALUControl == ALU_DICT["SUBU"]:
     return input1 - input2, 0 # TODO
-  elif ALUControl == ALUEnum.SLL:
+  elif ALUControl == ALU_DICT["SLL"]:
     return input1 << input2, 0
-  elif ALUControl == ALUEnum.SRL:
+  elif ALUControl == ALU_DICT["SRL"]:
     return input1 >> input2, 0
-  elif ALUControl == ALUEnum.SLT:
+  elif ALUControl == ALU_DICT["SLT"]:
     return (input1 < input2), 0 # TODO
-  elif ALUControl == ALUEnum.NOT:
+  elif ALUControl == ALU_DICT["NOT"]:
     return ~input1, 0 # TODO
-  elif ALUControl == ALUEnum.LOAD:
+  elif ALUControl == ALU_DICT["LOAD"]:
     return 0, 0, # TODO
-  elif ALUControl == ALUEnum.STORE:
+  elif ALUControl == ALU_DICT["STORE"]:
     return 0, 0 # TODO
   else:
     assert 1 == 2, "Invalid Operation: %s" % ALUControl

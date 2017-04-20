@@ -1,24 +1,23 @@
-from enum import IntEnum, unique
-#from opcode import FUNCT, OP
-import opcode
 
-@unique
-class ALUEnum(IntEnum):
-    X     = 0
-    AND   = 1
-    OR    = 2
-    ADD   = 3
-    ADDU  = 4
-    SUB   = 5
-    SUBU  = 6
-    SLL   = 7
-    SRL   = 8
-    SLT   = 9
-    NOT   = 10
-    LOAD  = 11
-    STORE = 12
+ALU_DICT = {
+  "X"     : 0,
+  "AND"   : 1,
+  "OR"    : 2,
+  "ADD"   : 3,
+  "ADDU"  : 4,
+  "SUB"   : 5,
+  "SUBU"  : 6,
+  "SLL"   : 7,
+  "SRL"   : 8,
+  "SLT"   : 9,
+  "SLTU"  : 10,
+  "NOT"   : 11,
+  "LOAD"  : 12,
+  "STORE" : 13,
+  "NOR"   : 14
+}
 
-class Controller:
+class Controller(object):
   RegDst   = 0 # Control to Register_Input_MUX, 0 if I-type, 1 if R-type
   Branch   = 0 # First control to PC_Input_MUX, 0 to use incremented PC, 1 to use Branch address
   Jump     = 0 # Second control to PC_Input_MUX, 0 to use value from above, 1 to use Jump address
@@ -30,23 +29,23 @@ class Controller:
   RegWrite = 0 # Set to 1 to write a new value to a register
 
   __funct_dic = {
-    opcode.FUNCT.SLL  : ALUEnum.SLL,
-    opcode.FUNCT.SRL  : ALUEnum.SRL,
-    opcode.FUNCT.JR   : ALUEnum.X,
-    opcode.FUNCT.ADD  : ALUEnum.ADD,
-    opcode.FUNCT.ADDU : ALUEnum.ADDU,
-    opcode.FUNCT.SUB  : ALUEnum.SUB,
-    opcode.FUNCT.SUBU : ALUEnum.SUBU,
-    opcode.FUNCT.AND  : ALUEnum.AND,
-    opcode.FUNCT.OR   : ALUEnum.OR,
-    opcode.FUNCT.NOR  : ALUEnum.NOR,
-    opcode.FUNCT.SLT  : ALUEnum.SLT,
-    opcode.FUNCT.SLLU : ALUEnum.SLTU
+    0x00 : ALU_DICT["SLL"],  # SLL
+    0x02 : ALU_DICT["SRL"],  # SRL
+    0x08 : ALU_DICT["X"],    # JR
+    0x20 : ALU_DICT["ADD"],  # ADD
+    0x21 : ALU_DICT["ADDU"], # ADDU
+    0x22 : ALU_DICT["SUB"],  # SUB
+    0x23 : ALU_DICT["SUBU"], # SUBU
+    0x24 : ALU_DICT["AND"],  # AND
+    0x25 : ALU_DICT["OR"],   # OR
+    0x27 : ALU_DICT["NOR"],  # NOR
+    0x2A : ALU_DICT["SLT"],  # SLT
+    0x2B : ALU_DICT["SLTU"]  # SLTU
   }
 
   def update(self, op, funct):
     # TODO: Assert on bounds
-    if op == OP.RTYPE:
+    if op == 0x00: # RTYPE
       self.RegDst   = 1
       self.Branch   = 0
       self.Jump     = 0
@@ -55,9 +54,9 @@ class Controller:
       self.MemWrite = 0
       self.ALUSrc   = 0
       self.RegWrite = 1
-      self.ALUOp    = self.__funct_dic[FUNCT(funct)]
+      self.ALUOp    = self.__funct_dic[funct]
 
-    elif op == OP.J:
+    elif op == 0x02: # J
       self.RegDst   = 0
       self.Branch   = 0
       self.Jump     = 1
@@ -66,9 +65,9 @@ class Controller:
       self.MemWrite = 0
       self.ALUSrc   = 0
       self.RegWrite = 0
-      self.ALUOp    = ALUEnum.X
+      self.ALUOp    = ALU_DICT["X"]
 
-    elif op == OP.JAL:
+    elif op == 0x03: # JAL
       self.RegDst   = 0
       self.Branch   = 0
       self.Jump     = 1
@@ -77,10 +76,10 @@ class Controller:
       self.MemWrite = 0
       self.ALUSrc   = 0
       self.RegWrite = 0
-      self.ALUOp    = ALUEnum.X
+      self.ALUOp    = ALU_DICT["X"]
       # TODO: Need a way to set a register
 
-    elif op == OP.BEQ:
+    elif op == 0x04: # BEQ
       self.RegDst   = 0
       self.Branch   = 1
       self.Jump     = 0
@@ -89,9 +88,9 @@ class Controller:
       self.MemWrite = 0
       self.ALUSrc   = 0
       self.RegWrite = 0
-      self.ALUOp    = ALUEnum.BEQ
+      self.ALUOp    = ALU_DICT["BEQ"]
 
-    elif op == OP.BNE:
+    elif op == 0x05: # BNE
       self.RegDst   = 0
       self.Branch   = 1
       self.Jump     = 0
@@ -100,9 +99,9 @@ class Controller:
       self.MemWrite = 0
       self.ALUSrc   = 0
       self.RegWrite = 0
-      self.ALUOp    = ALUEnum.BNE
+      self.ALUOp    = ALU_DICT["BNE"]
 
-    elif op == OP.ADDI:
+    elif op == 0x08: # ADDI
       self.RegDst   = 0
       self.Branch   = 0
       self.Jump     = 0
@@ -111,9 +110,9 @@ class Controller:
       self.MemWrite = 0
       self.ALUSrc   = 0
       self.RegWrite = 1
-      self.ALUOp    = ALUEnum.ADD
+      self.ALUOp    = ALU_DICT["ADD"]
 
-    elif op == OP.ADDIU:
+    elif op == 0x09: # ADDIU
       self.RegDst   = 0
       self.Branch   = 0
       self.Jump     = 0
@@ -122,9 +121,9 @@ class Controller:
       self.MemWrite = 0
       self.ALUSrc   = 0
       self.RegWrite = 1
-      self.ALUOp    = ALUEnum.ADDU
+      self.ALUOp    = ALU_DICT["ADDU"]
 
-    elif op == OP.SLTI:
+    elif op == 0x0A: # SLTI
       self.RegDst   = 0
       self.Branch   = 0
       self.Jump     = 0
@@ -133,9 +132,9 @@ class Controller:
       self.MemWrite = 0
       self.ALUSrc   = 0
       self.RegWrite = 1
-      self.ALUOp    = ALUEnum.SLT
+      self.ALUOp    = ALU_DICT["SLT"]
 
-    elif op == OP.SLTIU:
+    elif op == 0x0B: # SLTIU
       self.RegDst   = 0
       self.Branch   = 0
       self.Jump     = 0
@@ -144,9 +143,9 @@ class Controller:
       self.MemWrite = 0
       self.ALUSrc   = 0
       self.RegWrite = 1
-      self.ALUOp    = ALUEnum.SLTU
+      self.ALUOp    = ALU_DICT["SLTU"]
 
-    elif op == OP.ANDI:
+    elif op == 0x0C: # ANDI
       self.RegDst   = 0
       self.Branch   = 0
       self.Jump     = 0
@@ -155,9 +154,9 @@ class Controller:
       self.MemWrite = 0
       self.ALUSrc   = 0
       self.RegWrite = 1
-      self.ALUOp    = ALUEnum.AND
+      self.ALUOp    = ALU_DICT["AND"]
 
-    elif op == OP.ORI:
+    elif op == 0x0D: # ORI
       self.RegDst   = 0
       self.Branch   = 0
       self.Jump     = 0
@@ -166,9 +165,9 @@ class Controller:
       self.MemWrite = 0
       self.ALUSrc   = 0
       self.RegWrite = 1
-      self.ALUOp    = ALUEnum.OR
+      self.ALUOp    = ALU_DICT["OR"]
 
-    elif op == OP.LUI:
+    elif op == 0x0F: # LUI
       self.RegDst   = 0
       self.Branch   = 0
       self.Jump     = 0
@@ -177,9 +176,9 @@ class Controller:
       self.MemWrite = 0
       self.ALUSrc   = 1
       self.RegWrite = 1
-      self.ALUOp    = ALUEnum.LOAD
+      self.ALUOp    = ALU_DICT["LOAD"]
 
-    elif op == OP.LW:
+    elif op == 0x23: # LW
       self.RegDst   = 0
       self.Branch   = 0
       self.Jump     = 0
@@ -188,9 +187,9 @@ class Controller:
       self.MemWrite = 0
       self.ALUSrc   = 1
       self.RegWrite = 1
-      self.ALUOp    = ALUEnum.LOAD
+      self.ALUOp    = ALU_DICT["LOAD"]
 
-    elif op == OP.LBU:
+    elif op == 0x24: # LBU
       self.RegDst   = 0
       self.Branch   = 0
       self.Jump     = 0
@@ -199,9 +198,9 @@ class Controller:
       self.MemWrite = 0
       self.ALUSrc   = 1
       self.RegWrite = 1
-      self.ALUOp    = ALUEnum.LOAD
+      self.ALUOp    = ALU_DICT["LOAD"]
 
-    elif op == OP.LHU:
+    elif op == 0x25: # LHU
       self.RegDst   = 0
       self.Branch   = 0
       self.Jump     = 0
@@ -210,9 +209,9 @@ class Controller:
       self.MemWrite = 0
       self.ALUSrc   = 1
       self.RegWrite = 1
-      self.ALUOp    = ALUEnum.LOAD
+      self.ALUOp    = ALU_DICT["LOAD"]
 
-    elif op == OP.SB:
+    elif op == 0x28: # SB
       self.RegDst   = 0
       self.Branch   = 0
       self.Jump     = 0
@@ -221,9 +220,9 @@ class Controller:
       self.MemWrite = 1
       self.ALUSrc   = 1
       self.RegWrite = 0
-      self.ALUOp    = ALUEnum.STORE
+      self.ALUOp    = ALU_DICT["STORE"]
 
-    elif op == OP.SH:
+    elif op == 0x29: # SH
       self.RegDst   = 0
       self.Branch   = 0
       self.Jump     = 0
@@ -232,9 +231,9 @@ class Controller:
       self.MemWrite = 1
       self.ALUSrc   = 1
       self.RegWrite = 0
-      self.ALUOp    = ALUEnum.STORE
+      self.ALUOp    = ALU_DICT["STORE"]
 
-    elif op == OP.SW:
+    elif op == 0x2B: # SW
       self.RegDst   = 0
       self.Branch   = 0
       self.Jump     = 0
@@ -243,6 +242,8 @@ class Controller:
       self.MemWrite = 1
       self.ALUSrc   = 1
       self.RegWrite = 0
-      self.ALUOp    = ALUEnum.STORE
+      self.ALUOp    = ALU_DICT["STORE"]
+
     else:
       assert 0 == 1, "Operation not supported: %s" % op
+
