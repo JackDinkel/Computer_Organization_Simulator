@@ -19,43 +19,51 @@ class Single_Cycle(object):
   Data_Memory = HW.Data_Memory()
 
 
-  def execute(self):
-    # Initialize local variables
-    write_back = 0
-    next_pc = self.first_instr
-    incremented_pc = 0
-    branch_addr = 0
-    jump_addr = 0
+  # Initialize variables
+  write_back = 0
+  next_pc = first_instr
+  incremented_pc = 0
+  branch_addr = 0
+  jump_addr = 0
 
 
+  def cycle(self):
    
     ### Execute ###
     # Instruction Fetch
-    next_pc = HW.PC_Input_Mux(incremented_pc, branch_addr, jump_addr, self.controller.Branch, self.controller.Jump)
-    self.PC.Update(next_pc)
+    self.next_pc = HW.PC_Input_Mux(self.incremented_pc, self.branch_addr, self.jump_addr, self.controller.Branch, self.controller.Jump)
+    self.PC.Update(self.next_pc)
     current_pc = self.PC.Get()
     current_instr = self.Instruction_Memory.Fetch_Word(current_pc)
-    incremented_pc = HW.Add_Four(current_pc)
+    self.incremented_pc = HW.Add_Four(current_pc)
     
     # Instruction Decode and Register File Read
     self.decoder.decode(current_instr)
     self.controller.update(self.decoder.op, self.decoder.funct)
-    read_data_1, read_data_2 = self.Register_File.Operate(self.decoder.op, self.decoder.rs, self.decoder.rt, write_back, self.controller.RegWrite)
+    write_reg = HW.Register_Input_Mux(self.decoder.rt, self.decoder.rd, self.controller.RegDst) 
+
+    # Register Read
+    read_data_1, read_data_2 = self.Register_File.Operate(self.decoder.rs, self.decoder.rt, write_reg, self.write_back, 0)
     
     # Execute and Adress Calculation
     extended_i_imm = HW.Sign_Extend(self.decoder.i_imm)
     alu_operand_2 = HW.ALU_Input_Mux(read_data_2, extended_i_imm, self.controller.ALUSrc)
-    ALU_Control = 0 # TODO
-    alu_result, zero = HW.ALU(read_data_1, alu_operand_2, ALU_Control)
+    print "\talu1", read_data_1
+    print "\talu2", alu_operand_2
+    alu_result, zero = HW.ALU(read_data_1, alu_operand_2, self.decoder.shamt, self.controller.ALUOp)
+    print "\talu result", alu_result
     shifted_i_imm = HW.Shift_Left_2(extended_i_imm)
-    branch_addr = HW.Address_Adder(incremented_pc, shifted_i_imm)
-    jump_addr = HW.Calculate_Jump_Addr(self.decoder.j_imm, incremented_pc)
+    self.branch_addr = HW.Address_Adder(self.incremented_pc, shifted_i_imm)
+    self.jump_addr = HW.Calculate_Jump_Addr(self.decoder.j_imm, self.incremented_pc)
     
     # Memory Access
     memory_fetch = self.Data_Memory.Operate(alu_result, read_data_2, self.controller.MemRead, self.controller.MemWrite)  
     
     # Write Back
-    write_back = HW.Write_Back_Mux(memory_fetch, alu_result, self.controller.MemToReg)
+    self.write_back = HW.Write_Back_Mux(memory_fetch, alu_result, self.controller.MemToReg)
+
+    # Write back to Register File
+    self.Register_File.Operate(self.decoder.rs, self.decoder.rt, write_reg, self.write_back, self.controller.RegWrite)
 
 
 if __name__ == "__main__":

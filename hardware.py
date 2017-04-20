@@ -111,7 +111,7 @@ class Register_File(object):
     self.__register_list = [ Register() for _ in range(32) ]
 
   def GetList(self):
-    return self.__register_list
+    return [reg.Get() for reg in self.__register_list]
 
   def Get(self, index):
     assert index >= 0 and index < 32
@@ -127,8 +127,8 @@ class Register_File(object):
     if RegWrite:
       self.__register_list[write_reg].Update(write_data)
 
-    read_data_1 = self.__register_list[read_reg_1]
-    read_data_2 = self.__register_list[read_reg_2]
+    read_data_1 = self.__register_list[read_reg_1].Get()
+    read_data_2 = self.__register_list[read_reg_2].Get()
 
     return read_data_1, read_data_2
 
@@ -145,7 +145,7 @@ def ALU_Input_Mux(register, sign_extended, ALUSrc):
 
 
 
-def ALU(input1, input2, ALUControl):
+def ALU(input1, input2, shamt, ALUControl):
   # TODO: How does this interface with ALU Control? What is the zero Zero line on page 265?
   if   ALUControl == ALU_DICT["X"]:
     return 0, 0
@@ -162,10 +162,12 @@ def ALU(input1, input2, ALUControl):
   elif ALUControl == ALU_DICT["SUBU"]:
     return input1 - input2, 0 # TODO
   elif ALUControl == ALU_DICT["SLL"]:
-    return input1 << input2, 0
+    return input2 << shamt, 0
   elif ALUControl == ALU_DICT["SRL"]:
-    return input1 >> input2, 0
+    return input2 >> shamt, 0
   elif ALUControl == ALU_DICT["SLT"]:
+    return (input1 < input2), 0 # TODO
+  elif ALUControl == ALU_DICT["SLTU"]:
     return (input1 < input2), 0 # TODO
   elif ALUControl == ALU_DICT["NOT"]:
     return ~input1, 0 # TODO
@@ -173,6 +175,8 @@ def ALU(input1, input2, ALUControl):
     return 0, 0, # TODO
   elif ALUControl == ALU_DICT["STORE"]:
     return 0, 0 # TODO
+  elif ALUControl == ALU_DICT["NOR"]:
+    return ~(input1 | input2), 0 # TODO
   else:
     assert 1 == 2, "Invalid Operation: %s" % ALUControl
 

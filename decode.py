@@ -10,6 +10,16 @@ class Decoder:
   i_imm = 0
   j_imm = 0
 
+  def display(self):
+    print "op:", self.op
+    print "rs:", self.rs
+    print "rt:", self.rt
+    print "rd:", self.rd
+    print "shamt:", self.shamt
+    print "funct:", self.funct
+    print "i_imm:", self.i_imm
+    print "j_imm:", self.j_imm
+
   def decode(self, instr):
     self.op    = mask.Get_Bits_31_26(instr)
     self.rs    = mask.Get_Bits_25_21(instr)
