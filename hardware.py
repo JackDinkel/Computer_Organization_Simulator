@@ -15,10 +15,14 @@
 from control import ALU_DICT
 
 def twos_comp(val, num_bits):
-  # Returns num_bits bit 2's comp interpreted value
+  # Returns 2's comp interpreted value from unsigned
   if (val & (1 << (num_bits - 1))) != 0:
     val = val - (1 << num_bits)
   return val
+
+def unsigned(val, num_bits):
+  # Returns an unsigned representation from a 2's comp value
+  return (1 << num_bits) + val if val < 0 else val
 
 ##### Hardware ######
 
@@ -39,7 +43,7 @@ class Register(object):
     self.__value = 0
 
   def Update(self, new_val):
-    assert new_val >= 0x0 and new_val <= 0xFFFFFFFF, "new_val out of bounds: %s" % new_val
+    assert unsigned(new_val, 32) >= 0x0 and unsigned(new_val, 32) <= 0xFFFFFFFF, "new_val out of bounds: %s" % new_val
     self.__value = new_val
 
   def Get(self):
@@ -50,13 +54,16 @@ class Memory(object):
   # A list of all instructions
   __data = []
 
+  def __del__(self):
+    self.__data = []
+
   def Fetch_Word(self, address):
     assert len(self.__data) > 0, "Memory is empty!"
     assert address >= 0 and address < len(self.__data), "address out of bounds: %s" % address
     return self.__data[address]
     
   def Add_Word(self, data):
-    assert data >= 0x0 and data <= 0xFFFFFFFF, "data out of bounds: %s" % data
+    assert unsigned(data, 32) >= 0x0 and unsigned(data, 32) <= 0xFFFFFFFF, "data out of bounds: %s" % data
 
     # A word is 4 bytes, simulate this by having 3 empty slots
     # NOTE: would it be better to split this up by word? Other ideas? See above.
@@ -71,8 +78,11 @@ class Memory(object):
   def Load_Word(self, address, data):
     assert len(self.__data) > 0, "Memory is empty!"
     assert address >= 0 and address < len(self.__data), "address out of bounds: %s" % address
-    assert data >= 0x0 and data <= 0xFFFFFFFF, "data out of bounds: %s" % data
+    assert unsigned(data, 32) >= 0x0 and unsigned(data, 32) <= 0xFFFFFFFF, "data out of bounds: %s" % data
     self.__data[address] = data
+
+  def display(self):
+    print self.__data
 
 
 
@@ -126,7 +136,7 @@ class Register_File(object):
     assert read_reg_1 >= 0 and read_reg_1 < 32, "read_reg_1 out of bounds: %d" % read_reg_1
     assert read_reg_2 >= 0 and read_reg_2 < 32, "read_reg_2 out of bounds: %d" % read_reg_2
     assert write_reg  >= 0 and write_reg  < 32, "write_reg out of bounds: %d" % write_reg
-    assert write_data >= 0x0 and write_data <= 0xFFFFFFFF, "write_data out of bounds: %s" % write_data
+    assert unsigned(write_data, 32) >= 0x0 and unsigned(write_data, 32) <= 0xFFFFFFFF, "write_data out of bounds: %s" % write_data
     assert RegWrite == 0 or RegWrite == 1, "RegWrite out of bounds: %s" % RegWrite
 
     if RegWrite:

@@ -1,6 +1,7 @@
 import mask
 
 class Decoder:
+  instruction = 0
   op    = 0
   rs    = 0
   rt    = 0
@@ -11,16 +12,18 @@ class Decoder:
   j_imm = 0
 
   def display(self):
+    print "instr:", hex(self.instruction)
     print "op:", self.op
     print "rs:", self.rs
     print "rt:", self.rt
     print "rd:", self.rd
     print "shamt:", self.shamt
     print "funct:", self.funct
-    print "i_imm:", self.i_imm
-    print "j_imm:", self.j_imm
+    print "i_imm:", hex(self.i_imm)
+    print "j_imm:", hex(self.j_imm)
 
   def decode(self, instr):
+    self.instruction = instr
     self.op    = mask.Get_Bits_31_26(instr)
     self.rs    = mask.Get_Bits_25_21(instr)
     self.rt    = mask.Get_Bits_20_16(instr)

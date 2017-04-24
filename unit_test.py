@@ -176,9 +176,10 @@ def test_add_shift():
   a2_val = simulator.Register_File.Get(a2)
   assert a2_val == 0b10100
 
+  simulator.Instruction_Memory.__del__()
 
 
-@pytest.mark.skip()
+
 def test_signed_add():
   instruction = 0x27bdfff0 # addiu sp,sp,-16
   simulator = single_cycle.Single_Cycle()

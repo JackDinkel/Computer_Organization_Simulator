@@ -51,7 +51,7 @@ class Single_Cycle(object):
     print "\talu1", read_data_1
     print "\talu2", alu_operand_2
     alu_result, zero = HW.ALU(read_data_1, alu_operand_2, self.decoder.shamt, self.controller.ALUOp)
-    print "\talu result", alu_result
+    alu_result = HW.twos_comp(alu_result, 32)
     shifted_i_imm = HW.Shift_Left_2(extended_i_imm)
     self.branch_addr = HW.Address_Adder(self.incremented_pc, shifted_i_imm)
     self.jump_addr = HW.Calculate_Jump_Addr(self.decoder.j_imm, self.incremented_pc)
