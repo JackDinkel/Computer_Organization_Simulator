@@ -145,8 +145,6 @@ def test_ALU():
 
 
 
-
-
 def test_Shift_Left_2():
   v = 154
   assert HW.Shift_Left_2(v) == v << 2

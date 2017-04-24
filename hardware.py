@@ -14,6 +14,11 @@
 
 from control import ALU_DICT
 
+def twos_comp(val, num_bits):
+  # Returns num_bits bit 2's comp interpreted value
+  if (val & (1 << (num_bits - 1))) != 0:
+    val = val - (1 << num_bits)
+  return val
 
 ##### Hardware ######
 
@@ -136,13 +141,7 @@ class Register_File(object):
 
 def Sign_Extend(input_val):
   # Sign extend a 16 bit number to 32 bits
-
-  def twos_comp(val, num_bits):
-  # Returns num_bits bit 2's comp interpreted value
-    if (val & (1 << (num_bits - 1))) != 0:
-      val = val - (1 << num_bits)
-    return val
-
+  # NOTE: addui needs a way to bypass this!
   twos_val = twos_comp(input_val, 16)
   return twos_val if twos_val >= 0 else (twos_val + 0x100000000)
 
@@ -162,10 +161,14 @@ def ALU(input1, input2, shamt, ALUControl):
   elif ALUControl == ALU_DICT["OR"]:
     return input1 | input2, 0
   elif ALUControl == ALU_DICT["ADD"]:
+    input1 = twos_comp(input1, 32)
+    input2 = twos_comp(input2, 32)
     return input1 + input2, 0
   elif ALUControl == ALU_DICT["ADDU"]:
     return input1 + input2, 0 # TODO
   elif ALUControl == ALU_DICT["SUB"]:
+    input1 = twos_comp(input1, 32)
+    input2 = twos_comp(input2, 32)
     return input1 - input2, 0
   elif ALUControl == ALU_DICT["SUBU"]:
     return input1 - input2, 0 # TODO
