@@ -2,19 +2,19 @@ import pipeline_reg
 import hardware as HW
 from decode import Decoder as Instruction
 
+# pipeline registers
+IFID  = pipeline_reg.IFID()
+IDEX  = pipeline_reg.IDEX()
+EXMEM = pipeline_reg.EXMEM()
+MEMWB = pipeline_reg.MEMWB()
+
+# state elements
+PC = HW.PC()
+Instruction_Memory = HW.Instruction_Memory()
+Register_File = HW.Register_File()
+Data_Memory = HW.Data_Memory()
+
 def main():
-	# pipeline registers
-	IFID  = pipeline_reg.IFID()
-	IDEX  = pipeline_reg.IDEX()
-	EXMEM = pipeline_reg.EXMEM()
-	MEMWB = pipeline_reg.MEMWB()
-
-	# state elements
-	PC = HW.PC()
-	Instruction_Memory = HW.Instruction_Memory()
-	Register_File = HW.Register_File()
-	Data_Memory = HW.Data_Memory()
-
 	# start pipeline
 	pipelineLoop()
 
@@ -30,7 +30,8 @@ def IF():
 	if_instruction = Instruction()
 	pc = PC.Get()
 
-	if_instruction.decode(Instruction_Memory.Fetch_Word(pc))
+	if_instruction.word = Instruction_Memory.Fetch_Word(pc)
+	
 	IFID.set(if_instruction, pc+1)
 
 def ID():
