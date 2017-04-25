@@ -6,6 +6,24 @@ from control import ALU_DICT
 from register import REG_DICT
 
 
+
+def test_twos_comp():
+  val1 = 0
+  val2 = 11
+  val3 = -16
+  val4 = 0xFFFFFFF0
+
+  assert HW.twos_comp(val1, 32) == val1
+  assert HW.twos_comp(val2, 32) == val2
+  assert HW.twos_comp(val3, 32) == val3
+  assert HW.twos_comp(val4, 32) == val3
+
+  assert HW.unsigned(val1, 32) == val1
+  assert HW.unsigned(val2, 32) == val2
+  assert HW.unsigned(val3, 32) == val4
+  assert HW.unsigned(val4, 32) == val4
+
+
 def test_mux():
   assert HW.MUX("hi", 123, 0) == "hi"
   assert HW.MUX("hi", 123, 1) == 123
@@ -98,11 +116,11 @@ def test_Sign_Extend():
   val4 = 0x0064 # 100
   val5 = 0x0000 # 0
 
-  assert HW.Sign_Extend(val1) == 0b11111111111111111111111111110000
-  assert HW.Sign_Extend(val2) == 0b11111111111111111111111111111111
-  assert HW.Sign_Extend(val3) == 0b11111111111111111111111111001110
-  assert HW.Sign_Extend(val4) == 0b00000000000000000000000001100100
-  assert HW.Sign_Extend(val5) == 0b00000000000000000000000000000000
+  assert HW.Sign_Extend(val1, 16) == 0b11111111111111111111111111110000
+  assert HW.Sign_Extend(val2, 16) == 0b11111111111111111111111111111111
+  assert HW.Sign_Extend(val3, 16) == 0b11111111111111111111111111001110
+  assert HW.Sign_Extend(val4, 16) == 0b00000000000000000000000001100100
+  assert HW.Sign_Extend(val5, 16) == 0b00000000000000000000000000000000
 
 
 
@@ -138,7 +156,7 @@ def test_add_shift():
 
   simulator = single_cycle.Single_Cycle()
   simulator.Instruction_Memory.Store_Word(0, instruction1)
-  simulator.Instruction_Memory.Store_Word(1, instruction2)
+  simulator.Instruction_Memory.Store_Word(4, instruction2)
   simulator.cycle()
 
   # Check register
@@ -179,8 +197,8 @@ def test_memory():
   simulator.Data_Memory.__init__(5)
   simulator.Register_File.__init__()
   simulator.Instruction_Memory.Store_Word(0, instruction1)
-  simulator.Instruction_Memory.Store_Word(1, instruction2)
-  simulator.Instruction_Memory.Store_Word(2, instruction3)
+  simulator.Instruction_Memory.Store_Word(4, instruction2)
+  simulator.Instruction_Memory.Store_Word(8, instruction3)
   simulator.cycle()
 
   # Check register
