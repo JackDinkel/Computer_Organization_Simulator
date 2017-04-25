@@ -49,7 +49,7 @@ class Single_Cycle(object):
     read_data_1, read_data_2 = self.Register_File.Operate(self.decoder.rs, self.decoder.rt, write_reg, self.write_back, 0)
     
     # Execute and Adress Calculation
-    extended_i_imm = HW.Sign_Extend(self.decoder.i_imm)
+    extended_i_imm = HW.Sign_Extend(self.decoder.i_imm, 16)
     alu_operand_2 = HW.ALU_Input_Mux(read_data_2, extended_i_imm, self.controller.ALUSrc)
     alu_result, zero = HW.ALU(read_data_1, alu_operand_2, self.decoder.shamt, self.controller.ALUOp)
     alu_result = HW.twos_comp(alu_result, 32)

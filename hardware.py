@@ -13,11 +13,13 @@
 '''
 
 from control import ALU_DICT
+from globals import *
 
 def twos_comp(val, num_bits):
   # Returns 2's comp interpreted value from unsigned
-  if (val & (1 << (num_bits - 1))) != 0:
-    val = val - (1 << num_bits)
+  if (val > 0):
+    if (val & (1 << (num_bits - 1))) != 0:
+      val = val - (1 << num_bits)
   return val
 
 def unsigned(val, num_bits):
@@ -51,11 +53,12 @@ class Register(object):
 
 
 class Memory(object):
-  # NOTE: We decided to model this as word addressable, not byte addressable (lec 21)
-  #    PC should only increment by 1 word instead of 4 bytes
-  #    Branch offset addresses are already word aligned, no need to sh ift left by 2
-  #    Jump addresses are already word aligned, no need to shift left by 2
-  #    Jump Register needs to right shift by 2
+  # NOTE: We decided to model this as a combination of word addressable and byte addressable
+  # This is a divergence from lec 21, but I leave it here for reference
+  # Outside this class, everything is byte addressable, as normal
+  # Inside this class, memory is word addressed, so each list element stores a single word
+  # Simply divide the address by 4 to get the index, and % by 4 to get the offset
+
   # A list of all instructions
   __data = []
 
@@ -66,15 +69,93 @@ class Memory(object):
     self.__data = []
 
   def Load_Word(self, address):
+    index = address / 4
     assert len(self.__data) > 0, "Memory is empty!"
-    assert address >= 0 and address < len(self.__data), "address out of bounds: %s" % address
-    return self.__data[address]
+    assert index >= 0 and index < len(self.__data), "address out of bounds: %s" % address
+    return self.__data[index]
+
+  def Load_Half(self, address):
+    index  = address / 4
+    offset = address % 4
+    assert len(self.__data) > 0, "Memory is empty!"
+    assert index >= 0 and index < len(self.__data), "address out of bounds: %s" % address
+    word = twos_comp(self.__data[index])
+    return Sign_Extend(mask.Get_Half(word, offset))
+
+  def Load_Half_Unsigned(self, address):
+    index  = address / 4
+    offset = address % 4
+    assert len(self.__data) > 0, "Memory is empty!"
+    assert index >= 0 and index < len(self.__data), "address out of bounds: %s" % address
+    word = twos_comp(self.__data[index])
+    return mask.Get_Half(word, offset)
+
+  def Load_Byte(self, address):
+    index  = address / 4
+    offset = address % 4
+    assert len(self.__data) > 0, "Memory is empty!"
+    assert index >= 0 and index < len(self.__data), "address out of bounds: %s" % address
+    word = twos_comp(self.__data[index])
+    return Sign_Extend(mask.Get_Byte(word, offset))
+
+  def Load_Byte_Unsigned(self, address):
+    index  = address / 4
+    offset = address % 4
+    assert len(self.__data) > 0, "Memory is empty!"
+    assert index >= 0 and index < len(self.__data), "address out of bounds: %s" % address
+    word = twos_comp(self.__data[index])
+    return mask.Get_Byte(word, offset)
     
   def Store_Word(self, address, data):
+    index = address / 4
     assert len(self.__data) > 0, "Memory is empty!"
-    assert address >= 0 and address < len(self.__data), "address out of bounds: %s" % address
+    assert index >= 0 and index < len(self.__data), "address out of bounds: %s" % address
     assert unsigned(data, 32) >= 0x0 and unsigned(data, 32) <= 0xFFFFFFFF, "data out of bounds: %s" % data
-    self.__data[address] = data
+    self.__data[index] = data
+
+  def Store_Half(self, address, data):
+    index = address / 4
+    offset = address % 4
+    assert len(self.__data) > 0, "Memory is empty!"
+    assert index >= 0 and index < len(self.__data), "address out of bounds: %s" % address
+    assert unsigned(data, 32) >= 0x0 and unsigned(data, 32) <= 0xFFFFFFFF, "data out of bounds: %s" % data
+    assert offset >= 0 and offset < 2
+
+    shamt = offset * 16
+
+    # Get current word
+    word = self.Load_Word(address, data)
+    mask = 0xFFFF << shamt
+    shifted_word = word & mask
+
+    # Update current word
+    shifted_data = data << shamt
+    word_to_write = shifted_word | sifted_data
+
+    # Write updated word
+    self.__data[index] = word_to_write
+
+  def Store_Byte(self, address, data):
+    index = address / 4
+    offset = address % 4
+    assert len(self.__data) > 0, "Memory is empty!"
+    assert index >= 0 and index < len(self.__data), "address out of bounds: %s" % address
+    assert unsigned(data, 32) >= 0x0 and unsigned(data, 32) <= 0xFFFFFFFF, "data out of bounds: %s" % data
+    assert offset >= 0 and offset < 4
+
+    shamt = offset * 8
+
+    # Get current word
+    word = self.Load_Word(address, data)
+    mask = 0xFF << shamt
+    shifted_word = word & mask
+
+    # Update current word
+    shifted_data = data << shamt
+    word_to_write = shifted_word | sifted_data
+
+    # Write updated word
+    self.__data[index] = word_to_write
 
   def display(self):
     print self.__data
@@ -104,8 +185,7 @@ class Instruction_Memory(Memory):
 
 def Add_Four(input_num):
   #TODO: Error bounds
-  #return input_num + 4 # Only add 1 for Word Address
-  return input_num + 1
+  return input_num + 4 # Only add 1 for Word Address
 
 
 
@@ -146,10 +226,9 @@ class Register_File(object):
 
 
 
-def Sign_Extend(input_val):
-  # Sign extend a 16 bit number to 32 bits
-  # NOTE: addui needs a way to bypass this!
-  twos_val = twos_comp(input_val, 16)
+def Sign_Extend(input_val, num_bits):
+  # Sign extend to 32 bits
+  twos_val = twos_comp(input_val, num_bits)
   return twos_val if twos_val >= 0 else (twos_val + 0x100000000)
 
 
@@ -182,7 +261,7 @@ def ALU(input1, input2, shamt, ALUControl):
   elif ALUControl == ALU_DICT["SLL"]:
     return input2 << shamt, 0
   elif ALUControl == ALU_DICT["SRL"]:
-    return input2 >> shamt if input2 >= 0 else (input2 + 0x100000000) >> shamt, 0
+    return logical_rshift(input2, shamt), 0
   elif ALUControl == ALU_DICT["SLT"]:
     return (input1 < input2), 0 # TODO
   elif ALUControl == ALU_DICT["SLTU"]:
@@ -201,8 +280,7 @@ def ALU(input1, input2, shamt, ALUControl):
 
 
 def Shift_Left_2(unshifted_num):
-  #return unshifted_num << 2 # Using Word Addresses
-  return unshifted_num
+  return unshifted_num << 2 # Using Word Addresses
 
 
 
@@ -211,8 +289,7 @@ def Calculate_Jump_Addr(unshifted_num, next_pc):
   # TODO: assert unshifted_num is in bounds (26 bits)
   mask = 0xF0000000
   pc_upper = next_pc & mask
-  #return (unshifted_num << 2) & mask # Using Word Addresses
-  return unshifted_num & mask
+  return (unshifted_num << 2) & mask # Using Word Addresses
 
 
 
