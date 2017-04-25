@@ -11,7 +11,7 @@ class Instruction:
   i_imm = 0
   j_imm = 0
 
-def displayInstruction(self, instr):
+def displayInstruction(instr):
   print "op:", self.op
   print "rs:", self.rs
   print "rt:", self.rt
@@ -21,7 +21,7 @@ def displayInstruction(self, instr):
   print "i_imm:", self.i_imm
   print "j_imm:", self.j_imm
 
-def decodeInstruction(self, instr):
+def decodeInstruction(instr):
   value = instr.word
   instr.op    = mask.Get_Bits_31_26(value)
   instr.rs    = mask.Get_Bits_25_21(value)

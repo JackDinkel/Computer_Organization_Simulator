@@ -48,7 +48,7 @@ funct_dic = {
   0x2B : ALU_DICT["SLTU"]  # SLTU
 }
 
-def displayControl(self, exc, memc, wbc):
+def displayControl(exc, memc, wbc):
   print "RegDst:", exc.RegDst
   print "Branch:", memc.Branch
   print "Jump:", memc.Jump
@@ -59,7 +59,7 @@ def displayControl(self, exc, memc, wbc):
   print "ALUSrc:", exc.ALUSrc
   print "RegWrite:", wbc.RegWrite
 
-def updateControl(self, op, funct, exc, memc, wbc):
+def updateControl(op, funct, exc, memc, wbc):
   # TODO: Assert on bounds
   if op == 0x00: # RTYPE
     exc.RegDst   = 1
