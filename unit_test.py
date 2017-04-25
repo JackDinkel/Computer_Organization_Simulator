@@ -68,11 +68,6 @@ def test_Decode():
   assert decoder.j_imm == 0x78
 
 
-def test_Add_Four():
-  v = 12
-  assert HW.Add_Four(v) == v + 4
-
-
 
 def test_Register_File():
   f = HW.Register_File()
@@ -145,12 +140,6 @@ def test_ALU():
 
 
 
-def test_Shift_Left_2():
-  v = 154
-  assert HW.Shift_Left_2(v) == v << 2
-
-
-
 @pytest.mark.skip()
 def test_Data_Memory():
   #TODO
@@ -164,8 +153,8 @@ def test_add_shift():
   a2 = REG_DICT["a2"]
 
   simulator = single_cycle.Single_Cycle()
-  simulator.Instruction_Memory.Add_Word(instruction1)
-  simulator.Instruction_Memory.Add_Word(instruction2)
+  simulator.Instruction_Memory.Store_Word(0, instruction1)
+  simulator.Instruction_Memory.Store_Word(1, instruction2)
   simulator.cycle()
 
   # Check register
@@ -176,14 +165,12 @@ def test_add_shift():
   a2_val = simulator.Register_File.Get(a2)
   assert a2_val == 0b10100
 
-  simulator.Instruction_Memory.__del__()
-
 
 
 def test_signed_add():
   instruction = 0x27bdfff0 # addiu sp,sp,-16
   simulator = single_cycle.Single_Cycle()
-  simulator.Instruction_Memory.Add_Word(instruction)
+  simulator.Instruction_Memory.Store_Word(0, instruction)
   simulator.cycle()
 
   sp = REG_DICT["sp"]

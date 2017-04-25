@@ -51,31 +51,26 @@ class Register(object):
 
 
 class Memory(object):
+  # NOTE: We decided to model this as word addressable, not byte addressable (lec 21)
+  #    PC should only increment by 1 word instead of 4 bytes
+  #    Branch offset addresses are already word aligned, no need to sh ift left by 2
+  #    Jump addresses are already word aligned, no need to shift left by 2
+  #    Jump Register needs to right shift by 2
   # A list of all instructions
   __data = []
+
+  def __init__(self, size):
+    self.__data = [0 for _ in xrange(size)]
 
   def __del__(self):
     self.__data = []
 
-  def Fetch_Word(self, address):
+  def Load_Word(self, address):
     assert len(self.__data) > 0, "Memory is empty!"
     assert address >= 0 and address < len(self.__data), "address out of bounds: %s" % address
     return self.__data[address]
     
-  def Add_Word(self, data):
-    assert unsigned(data, 32) >= 0x0 and unsigned(data, 32) <= 0xFFFFFFFF, "data out of bounds: %s" % data
-
-    # A word is 4 bytes, simulate this by having 3 empty slots
-    # NOTE: would it be better to split this up by word? Other ideas? See above.
-    #       What if we make the memories a fixed size of registers.
-    #       Then, each register can have byte operations (that just use masking).
-    #       Divide by four when doing a memory operation and it all should work...
-    self.__data.append(data)
-    self.__data.append(0)
-    self.__data.append(0)
-    self.__data.append(0)
-
-  def Load_Word(self, address, data):
+  def Store_Word(self, address, data):
     assert len(self.__data) > 0, "Memory is empty!"
     assert address >= 0 and address < len(self.__data), "address out of bounds: %s" % address
     assert unsigned(data, 32) >= 0x0 and unsigned(data, 32) <= 0xFFFFFFFF, "data out of bounds: %s" % data
@@ -102,13 +97,15 @@ class PC(Register):
 
 
 class Instruction_Memory(Memory):
-  pass
+  def __init__(self, size):
+    Memory.__init__(self, size)
 
 
 
 def Add_Four(input_num):
   #TODO: Error bounds
-  return input_num + 4
+  #return input_num + 4 # Only add 1 for Word Address
+  return input_num + 1
 
 
 
@@ -204,7 +201,8 @@ def ALU(input1, input2, shamt, ALUControl):
 
 
 def Shift_Left_2(unshifted_num):
-  return unshifted_num << 2
+  #return unshifted_num << 2 # Using Word Addresses
+  return unshifted_num
 
 
 
@@ -213,7 +211,8 @@ def Calculate_Jump_Addr(unshifted_num, next_pc):
   # TODO: assert unshifted_num is in bounds (26 bits)
   mask = 0xF0000000
   pc_upper = next_pc & mask
-  return (unshifted_num << 2) & mask
+  #return (unshifted_num << 2) & mask # Using Word Addresses
+  return unshifted_num & mask
 
 
 
@@ -224,6 +223,9 @@ def Address_Adder(next_pc, shifted_num):
 
 ## Memory Access ##
 class Data_Memory(Memory):
+  def __init__(self, size):
+    Memory.__init__(self, size)
+
   def Operate(self, address, write_data, MemRead, MemWrite):
     read_data = 0
 
