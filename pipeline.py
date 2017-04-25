@@ -16,6 +16,7 @@ Data_Memory = HW.Data_Memory()
 
 # non-register signals
 WriteData = 0
+PCSrc = 0
 
 def main():
 	# start pipeline
@@ -30,12 +31,14 @@ def pipelineLoop():
 	updateReg()
 
 def IF():
-	if_instruction = Instruction()
-	pc = PC.Get()
+	instruction_temp = Instruction()
 
-	if_instruction.word = Instruction_Memory.Fetch_Word(pc)
+	pc = PC_Input_Mux(IFID.pc_out, EXMEM.branchAddress_out, EXMEM.jumpAddress_out, 
+		PCSrc, EXMEM.memControl_out.Jump)
+
+	instruction_temp.word = Instruction_Memory.Fetch_Word(pc)
 	
-	IFID.set(if_instruction, pc+4)
+	IFID.set(instruction_temp, pc+4)
 
 def ID():
 	# decode
@@ -50,12 +53,12 @@ def ID():
 
 	# Register file operations
 	read_data_1, read_data_2 = Register_File.Operate(IFID.instruction_out.rs, 
-		IFID.instruction_out.rt, MEMWB.writeReg_out, WriteData, 
+		IFID.instruction_out.rt, MEMWB.destinationReg_out, WriteData, 
 		MEMWB.wbControl_out.RegWrite)
 
 	# inputs to IDEX register
-	IDEX.set(IFID.instruction_out, IFID.pc_out, read_data_1, read_data_2, 
-		wbcTemp, memcTemp, excTemp)
+	IDEX.set(IFID.instruction_out, Sign_Extend(IFID.instruction_out.i_imm, 16), 
+		IFID.pc_out, read_data_1, read_data_2, wbcTemp, memcTemp, excTemp)
 
 def EX():
 	# determine write reg address
@@ -63,24 +66,38 @@ def EX():
 		IDEX.instruction_out.rd, IDEX.exControl_out.RegDst)
 
 	# ALU
-	alu_mux_temp = ALU_Input_Mux(IDEX.readData2_out, IDEX.instruction_out.i_imm, #TODO: need to sign-extend immed?
+	alu_mux_temp = ALU_Input_Mux(IDEX.readData2_out, IDEX.signExtendImm_out, 
 		IDEX.exControl_out.ALUSrc)
 	alu_res_temp = ALU(IDEX.readData1_out, alu_mux_temp, IDEX.instruction_out.shamt, 
 		IDEX.exControl_out.ALUOp)
 
 	# calculate branch address
-	branch_addr_temp = Shift_Left_2(IDEX.instruction_out.i_imm) + IDEX.pc_out
+	branch_addr_temp = Shift_Left_2(IDEX.signExtendImm_out) + IDEX.pc_out
 
-	EXMEM.set(dest_reg_temp, IDEX.readData2_out, alu_res_temp, (alu_res_temp == 0), 
-		branch_addr_temp, IDEX.wbControl_out, IDEX.memControl_out)
-	return
+	# calculate jump address
+	jump_addr_temp = Calculate_Jump_Addr(IDEX.instruction_out.j_imm, IDEX.pc_out)
+
+	# inputs to EXMEM register
+	EXMEM.set(IDEX.instruction_out, dest_reg_temp, IDEX.readData2_out, alu_res_temp, 
+		(alu_res_temp == 0), branch_addr_temp, jump_addr_temp, IDEX.wbControl_out, 
+		IDEX.memControl_out)
 
 def MEM():
-	return
+	PCSrc = 1 if (EXMEM.memControl_out.Branch == 1 && EXMEM.zero_out) else 0 # Python ternary operator
+
+	# operate on data memory
+	read_data_temp = Data_Memory.Operate(EXMEM.ALUResult_out, EXMEM.readData2_out, 
+		EXMEM.memControl_out.MemRead, EXMEM.memControl_out.MemWrite, 
+		EXMEM.instruction_out.op)
+
+	# inputs to MEMWB register
+	MEMWB.set(EXMEM.destinationReg_out, EXMEM.ALUResult_out, read_data_temp, 
+		EXMEM.wbControl_out)
 
 def WB():
 	# update WriteData
-	return
+	WriteData = Write_Back_Mux(MEMWB.readData_out, MEMWB.ALUResult_out, 
+		MEMWB.wbControl_out.MemToReg)
 
 def updateReg():
 	ifid.update()

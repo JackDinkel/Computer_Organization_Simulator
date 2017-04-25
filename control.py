@@ -26,7 +26,6 @@ class MEMControl(object):
   Branch   = 0 # First control to PC_Input_MUX, 0 to use incremented PC, 1 to use Branch address
   MemRead  = 0 # Set to 1 to fetch from Memory
   MemWrite = 0 # Set to 1 to read from Memory
-  # TODO: check this one
   Jump     = 0 # Second control to PC_Input_MUX, 0 to use value from above, 1 to use Jump address
 
 class WBControl(object):

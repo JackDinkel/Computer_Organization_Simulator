@@ -289,7 +289,7 @@ def Calculate_Jump_Addr(unshifted_num, next_pc):
   # TODO: assert unshifted_num is in bounds (26 bits)
   mask = 0xF0000000
   pc_upper = next_pc & mask
-  return (unshifted_num << 2) & mask # Using Word Addresses
+  return (unshifted_num << 2) + pc_upper # Using Word Addresses
 
 
 
@@ -303,9 +303,10 @@ class Data_Memory(Memory):
   def __init__(self, size):
     Memory.__init__(self, size)
 
-  def Operate(self, address, write_data, MemRead, MemWrite):
+  def Operate(self, address, write_data, MemRead, MemWrite, op):
     read_data = 0
 
+    # TODO: add switch case to decide memory operation based on "op"
     if MemRead:
       read_data = Memory.Load_Word(self, address)
     if MemWrite:
