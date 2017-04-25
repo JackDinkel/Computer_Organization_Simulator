@@ -190,9 +190,9 @@ def ALU(input1, input2, shamt, ALUControl):
   elif ALUControl == ALU_DICT["NOT"]:
     return ~input1, 0 # TODO
   elif ALUControl == ALU_DICT["LOAD"]:
-    return 0, 0, # TODO
+    return input1 + input2, 0
   elif ALUControl == ALU_DICT["STORE"]:
-    return 0, 0 # TODO
+    return input1 + input2, 0
   elif ALUControl == ALU_DICT["NOR"]:
     return ~(input1 | input2), 0 # TODO
   else:
@@ -230,9 +230,9 @@ class Data_Memory(Memory):
     read_data = 0
 
     if MemRead:
-      read_data = Memory.Fetch_Word(address)
+      read_data = Memory.Load_Word(self, address)
     if MemWrite:
-      Memory.Load_Word(address, write_data)
+      Memory.Store_Word(self, address, write_data)
 
     return read_data
 

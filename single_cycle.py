@@ -7,7 +7,7 @@ class Single_Cycle(object):
   first_instr = 0x0
 
   instr_mem_size = 100
-  data_mem_size = 100
+  data_mem_size = 1200
   
   
   # Initialize helpers
@@ -51,8 +51,6 @@ class Single_Cycle(object):
     # Execute and Adress Calculation
     extended_i_imm = HW.Sign_Extend(self.decoder.i_imm)
     alu_operand_2 = HW.ALU_Input_Mux(read_data_2, extended_i_imm, self.controller.ALUSrc)
-    print "\talu1", read_data_1
-    print "\talu2", alu_operand_2
     alu_result, zero = HW.ALU(read_data_1, alu_operand_2, self.decoder.shamt, self.controller.ALUOp)
     alu_result = HW.twos_comp(alu_result, 32)
     shifted_i_imm = HW.Shift_Left_2(extended_i_imm)

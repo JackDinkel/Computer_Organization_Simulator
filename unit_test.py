@@ -22,12 +22,6 @@ def test_PC():
   assert mypc.Get() == v
 
 
-@pytest.mark.skip()
-def test_Instruction_Memory():
-  #TODO
-  pass
-
-
 
 def test_Decode():
   decoder = decode.Decoder()
@@ -110,9 +104,6 @@ def test_Sign_Extend():
   assert HW.Sign_Extend(val4) == 0b00000000000000000000000001100100
   assert HW.Sign_Extend(val5) == 0b00000000000000000000000000000000
 
-  
-
-
 
 
 
@@ -134,16 +125,9 @@ def test_ALU():
   assert HW.ALU(input1, input2, 0, ALU_DICT["SLT"])   == (0, 0) # TODO
   assert HW.ALU(input1, input2, 0, ALU_DICT["SLTU"])  == (0, 0) # TODO
   assert HW.ALU(input1, input2, 0, ALU_DICT["NOT"])   == (~input1, 0)
-  assert HW.ALU(input1, input2, 0, ALU_DICT["LOAD"])  == (0, 0) # TODO
-  assert HW.ALU(input1, input2, 0, ALU_DICT["STORE"]) == (0, 0) # TODO
+  assert HW.ALU(input1, input2, 0, ALU_DICT["LOAD"])  == (7, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["STORE"]) == (7, 0)
   assert HW.ALU(input1, input2, 0, ALU_DICT["NOR"])   == (~(input1 | input2), 0) # TODO
-
-
-
-@pytest.mark.skip()
-def test_Data_Memory():
-  #TODO
-  pass
 
 
 
@@ -170,6 +154,9 @@ def test_add_shift():
 def test_signed_add():
   instruction = 0x27bdfff0 # addiu sp,sp,-16
   simulator = single_cycle.Single_Cycle()
+  simulator.Instruction_Memory.__init__(5)
+  simulator.Data_Memory.__init__(5)
+  simulator.Register_File.__init__()
   simulator.Instruction_Memory.Store_Word(0, instruction)
   simulator.cycle()
 
@@ -178,3 +165,37 @@ def test_signed_add():
   print simulator.decoder.i_imm
   print sp_val
   assert sp_val == -16
+
+def test_memory():
+  instruction1 = 0x214A0005 # addi t2 t2 0x5
+  instruction2 = 0xAFAA0000 # sw t2, 0(sp)
+  instruction3 = 0x8FA70000 # lw a3, 0(sp)
+  
+  t2 = REG_DICT["t2"]
+  a3 = REG_DICT["a3"]
+
+  simulator = single_cycle.Single_Cycle()
+  simulator.Instruction_Memory.__init__(5)
+  simulator.Data_Memory.__init__(5)
+  simulator.Register_File.__init__()
+  simulator.Instruction_Memory.Store_Word(0, instruction1)
+  simulator.Instruction_Memory.Store_Word(1, instruction2)
+  simulator.Instruction_Memory.Store_Word(2, instruction3)
+  simulator.cycle()
+
+  # Check register
+  t2_val = simulator.Register_File.Get(t2)
+  assert t2_val == 0x05
+
+  #simulator.Data_Memory.display()
+  #print simulator.Register_File.GetList()
+  simulator.cycle()
+  #simulator.Data_Memory.display()
+  assert simulator.Data_Memory.Load_Word(0) == t2_val
+
+  assert simulator.Register_File.Get(a3) == 0
+  simulator.cycle()
+  print simulator.decoder.display()
+  print simulator.controller.display()
+  assert simulator.Register_File.Get(a3) == t2_val
+
