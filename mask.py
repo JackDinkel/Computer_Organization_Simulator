@@ -1,4 +1,5 @@
 # A few functions to retrieve certain bits from a 32 bit number
+from globals import *
 
 #TODO: Are there signed vs unsigned issues?
 def Get_Bits_31_26(number):
@@ -40,3 +41,25 @@ def Get_Bits_25_0(number):
   assert number >= 0x0 and number <= 0xFFFFFFFF
   mask = 0x03FFFFFF
   return (number & mask)
+
+def Offset_Mask(offset, bits):
+  mask = 2**bits - 1
+  for _ in xrange(offset):
+    mask = (mask << bits) | mask
+  return mask
+
+def Get_Bits(number, offset, num_bits):
+  assert number >= 0x0 and number <= 0xFFFFFFFF
+  assert offset >= 0   and offset <= 3
+  assert num_bits >= 0 and num_bits < 32
+  return logical_rshift( number & Offset_Mask(offset, num_bits), offset * num_bits )
+
+def Get_Byte(number, offset):
+  assert number >= 0x0 and number <= 0xFFFFFFFF
+  assert offset >= 0   and offset <= 3
+  return Get_Bits(number, offset, 8)
+
+def Get_Half(number, offset):
+  assert number >= 0x0 and number <= 0xFFFFFFFF
+  assert offset >= 0   and offset <= 1
+  return Get_Bits(number, offset, 16)

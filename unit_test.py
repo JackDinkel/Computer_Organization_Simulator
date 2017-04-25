@@ -2,6 +2,7 @@ import hardware as HW
 import decode
 import pytest
 import single_cycle
+import mask
 from control import ALU_DICT
 from register import REG_DICT
 
@@ -124,6 +125,16 @@ def test_Sign_Extend():
 
 
 
+def test_get_byte():
+  num = 0x12345678
+  assert mask.Get_Byte(num, 0) == 0x78
+  assert mask.Get_Byte(num, 1) == 0x56
+  assert mask.Get_Byte(num, 2) == 0x34
+  assert mask.Get_Byte(num, 3) == 0x12
+  assert mask.Get_Half(num, 0) == 0x5678
+  assert mask.Get_Half(num, 1) == 0x1234
+
+
 
 def test_ALU():
   #TODO
@@ -184,7 +195,17 @@ def test_signed_add():
   print sp_val
   assert sp_val == -16
 
+
+@pytest.mark.skip
 def test_memory():
+  simulator = single_cycle.Single_Cycle()
+  simulator.Instruction_Memory.__init__(5)
+  simulator.Data_Memory.__init__(5)
+  simulator.Register_File.__init__()
+
+
+
+def test_loadstore():
   instruction1 = 0x214A0005 # addi t2 t2 0x5
   instruction2 = 0xAFAA0000 # sw t2, 0(sp)
   instruction3 = 0x8FA70000 # lw a3, 0(sp)
