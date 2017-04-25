@@ -5,6 +5,9 @@ from control import Controller
 class Single_Cycle(object):
   # Address of the first instruction
   first_instr = 0x0
+
+  instr_mem_size = 100
+  data_mem_size = 1200
   
   
   # Initialize helpers
@@ -14,9 +17,9 @@ class Single_Cycle(object):
   
   # Initialize hardware
   PC = HW.PC()
-  Instruction_Memory = HW.Instruction_Memory()
+  Instruction_Memory = HW.Instruction_Memory(instr_mem_size)
   Register_File = HW.Register_File()
-  Data_Memory = HW.Data_Memory()
+  Data_Memory = HW.Data_Memory(data_mem_size)
 
 
   # Initialize variables
@@ -34,7 +37,7 @@ class Single_Cycle(object):
     self.next_pc = HW.PC_Input_Mux(self.incremented_pc, self.branch_addr, self.jump_addr, self.controller.Branch, self.controller.Jump)
     self.PC.Update(self.next_pc)
     current_pc = self.PC.Get()
-    current_instr = self.Instruction_Memory.Fetch_Word(current_pc)
+    current_instr = self.Instruction_Memory.Load_Word(current_pc)
     self.incremented_pc = HW.Add_Four(current_pc)
     
     # Instruction Decode and Register File Read
@@ -48,10 +51,8 @@ class Single_Cycle(object):
     # Execute and Adress Calculation
     extended_i_imm = HW.Sign_Extend(self.decoder.i_imm)
     alu_operand_2 = HW.ALU_Input_Mux(read_data_2, extended_i_imm, self.controller.ALUSrc)
-    print "\talu1", read_data_1
-    print "\talu2", alu_operand_2
     alu_result, zero = HW.ALU(read_data_1, alu_operand_2, self.decoder.shamt, self.controller.ALUOp)
-    print "\talu result", alu_result
+    alu_result = HW.twos_comp(alu_result, 32)
     shifted_i_imm = HW.Shift_Left_2(extended_i_imm)
     self.branch_addr = HW.Address_Adder(self.incremented_pc, shifted_i_imm)
     self.jump_addr = HW.Calculate_Jump_Addr(self.decoder.j_imm, self.incremented_pc)
