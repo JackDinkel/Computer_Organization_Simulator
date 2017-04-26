@@ -30,20 +30,20 @@ def pipelineMain():
 	IFID.pc_out = 0x00000000 
 
 	# initialize some code
-	Instruction_Memory.Store_Word(0,  0x20080009) # addi t0 zero 0x0009
-	Instruction_Memory.Store_Word(4,  0x20090008) # addi t1 zero 0x0008
-	Instruction_Memory.Store_Word(8,  0x200a0007) # addi t2 zero 0x0007
-	Instruction_Memory.Store_Word(12, 0x200B0050) # addi t3 zero 0x0050
-	Instruction_Memory.Store_Word(16, 0x200c0005) # addi t4 zero 0x0005
-	Instruction_Memory.Store_Word(20, 0x200d0004) # addi t5 zero 0x0004
-	Instruction_Memory.Store_Word(24, 0x01097020) # add t6 t0 t1
+	Instruction_Memory.Store_Word(0,  0x20090002) # addi t1 zero 0x0002
+	Instruction_Memory.Store_Word(4,  0x200a0003) # addi t2 zero 0x0003
+	Instruction_Memory.Store_Word(8,  0x200b0004) # addi t3 zero 0x0004
+	Instruction_Memory.Store_Word(12, 0x200c0005) # addi t4 zero 0x0005
+	Instruction_Memory.Store_Word(16, 0x012A4820) # add t1 t1 t2
+	Instruction_Memory.Store_Word(20, 0x012B4820) # add t1 t1 t3
+	Instruction_Memory.Store_Word(24, 0x012C4820) # add t1 t1 t4
 	Instruction_Memory.Store_Word(28, 0x00000000) # nop
-	Instruction_Memory.Store_Word(32, 0xAD680000) # sw t0, 0x0(t3)
-	Instruction_Memory.Store_Word(36, 0x000DC840) # sll t9 t5 0x1
+	Instruction_Memory.Store_Word(32, 0x00000000) # nop
+	Instruction_Memory.Store_Word(36, 0x00000000) # nop
 	Instruction_Memory.Store_Word(40, 0x00000000) # nop
 	Instruction_Memory.Store_Word(44, 0x00000000) # nop
 	Instruction_Memory.Store_Word(48, 0x00000000) # nop
-	Instruction_Memory.Store_Word(52, 0x8C090050) # lw t1, 0x50(zero)
+	Instruction_Memory.Store_Word(52, 0x00000000) # nop
 	Instruction_Memory.Store_Word(56, 0x00000000) # nop
 	Instruction_Memory.Store_Word(60, 0x00000000) # nop
 	Instruction_Memory.Store_Word(64, 0x00000000) # nop
@@ -107,10 +107,17 @@ def EX():
 	dest_reg_temp = HW.Register_Input_Mux(IDEX.instruction_out.rt, 
 		IDEX.instruction_out.rd, IDEX.exControl_out.RegDst)
 
+	# Forwarding
+	(forwardA, forwardB) = HW.Forwarding_Unit(IDEX.instruction_out.rs, IDEX.instruction_out.rt, 
+		EXMEM.instruction_out.rd, MEMWB.destinationReg_out, EXMEM.wbControl_out.RegWrite, 
+		MEMWB.wbControl_out.RegWrite)
+
 	# ALU
-	alu_mux_temp = HW.ALU_Input_Mux(IDEX.readData2_out, IDEX.signExtendImm_out, 
+	alu_input_1 = HW.ALU_Reg_A_Mux(IDEX.readData1_out, WriteData, EXMEM.ALUResult_out, forwardA)
+	alu_input_2 = HW.ALU_Reg_B_MUX(IDEX.readData2_out, WriteData, EXMEM.ALUResult_out, forwardB)
+	alu_mux_temp = HW.ALU_Input_Mux(alu_input_2, IDEX.signExtendImm_out, 
 		IDEX.exControl_out.ALUSrc)
-	alu_res_temp = HW.ALU(IDEX.readData1_out, alu_mux_temp, IDEX.instruction_out.shamt, 
+	alu_res_temp = HW.ALU(alu_input_1, alu_mux_temp, IDEX.instruction_out.shamt, 
 		IDEX.exControl_out.ALUOp)
 
 	# calculate branch address
