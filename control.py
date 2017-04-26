@@ -20,7 +20,10 @@ ALU_DICT = {
   "SW"    : 17,
   "SH"    : 18,
   "SB"    : 19,
-  "NOR"   : 20
+  "NOR"   : 20,
+  "MOVZ"  : 21,
+  "MOVN"  : 22,
+  "XOR"   : 23,
 }
 
 class Controller(object):
@@ -38,6 +41,8 @@ class Controller(object):
     0x00 : ALU_DICT["SLL"],  # SLL
     0x02 : ALU_DICT["SRL"],  # SRL
     0x08 : ALU_DICT["X"],    # JR
+    0x0A : ALU_DICT["MOVZ"], # MOVZ
+    0x0B : ALU_DICT["MOVN"], # MOVN
     0x20 : ALU_DICT["ADD"],  # ADD
     0x21 : ALU_DICT["ADDU"], # ADDU
     0x22 : ALU_DICT["SUB"],  # SUB
@@ -45,6 +50,7 @@ class Controller(object):
     0x24 : ALU_DICT["AND"],  # AND
     0x25 : ALU_DICT["OR"],   # OR
     0x27 : ALU_DICT["NOR"],  # NOR
+    0x26 : ALU_DICT["XOR"],  # XOR
     0x2A : ALU_DICT["SLT"],  # SLT
     0x2B : ALU_DICT["SLTU"]  # SLTU
   }
@@ -72,6 +78,9 @@ class Controller(object):
       self.ALUSrc   = 0
       self.RegWrite = 1
       self.ALUOp    = self.__funct_dic[funct]
+
+    elif op == 0x01: # BLTZ TODO
+      pass
 
     elif op == 0x02: # J
       self.RegDst   = 0
@@ -117,6 +126,12 @@ class Controller(object):
       self.ALUSrc   = 1
       self.RegWrite = 0
       self.ALUOp    = ALU_DICT["BNE"]
+
+    elif op == 0x06: # BLTZ TODO
+      pass
+
+    elif op == 0x07: # BGTZ TODO
+      pass
 
     elif op == 0x08: # ADDI
       self.RegDst   = 0
@@ -184,6 +199,9 @@ class Controller(object):
       self.RegWrite = 1
       self.ALUOp    = ALU_DICT["OR"]
 
+    elif op == 0x0E: # XORI TODO
+      pass
+
     elif op == 0x0F: # LUI TODO
       self.RegDst   = 0
       self.Branch   = 0
@@ -194,6 +212,15 @@ class Controller(object):
       self.ALUSrc   = 1
       self.RegWrite = 1
       self.ALUOp    = ALU_DICT["LOAD"]
+
+    elif op == 0x1F: # SEP TODO
+      pass
+
+    elif op == 0x20: # LB TODO
+      pass
+
+    elif op == 0x21: # LH TODO
+      pass
 
     elif op == 0x23: # LW
       self.RegDst   = 0
