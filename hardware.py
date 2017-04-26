@@ -163,18 +163,32 @@ class Memory(object):
     # Write updated word
     self.__data[index] = word_to_write
 
-  def Data_Operate(self, address, write_data, MemRead, MemWrite):
+  def Data_Operate(self, address, write_data, MemRead, MemWrite, Op):
     read_data = 0
 
     if MemRead:
-      read_data = Memory.Load_Word(self, address)
+      assert Op >= 12 and Op <= 16, "Op out of bounds: %s" % Op
+      if Op == ALU_DICT["LW"]:
+        read_data = Memory.Load_Word(self, address)
+      if Op == ALU_DICT["LBU"]:
+        read_data = Memory.Load_Byte_Unsigned(self, address)
+      if Op == ALU_DICT["LHU"]:
+        read_data = Memory.Load_Half_Unsigned(self, address)
+
     if MemWrite:
-      Memory.Store_Word(self, address, write_data)
+      assert Op >= 17 and Op <= 19, "Op out of bounds: %s" % Op
+      if Op == ALU_DICT["SB"]:
+        Memory.Store_Byte(self, address, write_data)
+      if Op == ALU_DICT["SH"]:
+        Memory.Store_Half(self, address, write_data)
+      if Op == ALU_DICT["SW"]:
+        Memory.Store_Word(self, address, write_data)
 
     return read_data
 
   def Instruction_Operate(self, address, write_data, MemRead, MemWrite):
     read_data = 0
+
 
     if MemRead:
       read_data = Memory.Load_Word(self, address)
@@ -294,9 +308,21 @@ def ALU(input1, input2, shamt, ALUControl):
     return (input1 < input2), 0 # TODO
   elif ALUControl == ALU_DICT["NOT"]:
     return ~input1, 0 # TODO
-  elif ALUControl == ALU_DICT["LOAD"]:
+  elif ALUControl == ALU_DICT["LW"]:
     return input1 + input2, 0
-  elif ALUControl == ALU_DICT["STORE"]:
+  elif ALUControl == ALU_DICT["LH"]:
+    return input1 + input2, 0
+  elif ALUControl == ALU_DICT["LB"]:
+    return input1 + input2, 0
+  elif ALUControl == ALU_DICT["LHU"]:
+    return input1 + input2, 0
+  elif ALUControl == ALU_DICT["LBU"]:
+    return input1 + input2, 0
+  elif ALUControl == ALU_DICT["SW"]:
+    return input1 + input2, 0
+  elif ALUControl == ALU_DICT["SH"]:
+    return input1 + input2, 0
+  elif ALUControl == ALU_DICT["SB"]:
     return input1 + input2, 0
   elif ALUControl == ALU_DICT["NOR"]:
     return ~(input1 | input2), 0 # TODO

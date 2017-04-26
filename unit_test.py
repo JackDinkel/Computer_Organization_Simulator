@@ -154,8 +154,12 @@ def test_ALU():
   assert HW.ALU(input1, input2, 0, ALU_DICT["SLT"])   == (0, 0) # TODO
   assert HW.ALU(input1, input2, 0, ALU_DICT["SLTU"])  == (0, 0) # TODO
   assert HW.ALU(input1, input2, 0, ALU_DICT["NOT"])   == (~input1, 0)
-  assert HW.ALU(input1, input2, 0, ALU_DICT["LOAD"])  == (7, 0)
-  assert HW.ALU(input1, input2, 0, ALU_DICT["STORE"]) == (7, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["LW"])  == (7, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["LBU"])  == (7, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["LHU"])  == (7, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["SW"]) == (7, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["SH"]) == (7, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["SB"]) == (7, 0)
   assert HW.ALU(input1, input2, 0, ALU_DICT["NOR"])   == (~(input1 | input2), 0) # TODO
 
 
@@ -228,19 +232,25 @@ def test_memory():
 
 
 def test_loadstore():
-  instruction1 = 0x214A0005 # addi t2 t2 0x5
-  instruction2 = 0xAFAA0000 # sw t2, 0(sp)
-  instruction3 = 0x8FA70000 # lw a3, 0(sp)
+  instructions = [
+    0x214A0005, # addi t2 t2 0x5
+    0xAFAA00F0, # sw t2, 0xf0(sp)
+    0x8FA700F0, # lw a3, 0xf0(sp)
+    0x216B0012, # addi t3, t3, 0x12
+    0xA7AB00F2, # sh t3, 0xf2(sp)
+    0x8FA700F0, # lw a3, 0xf0(sp)
+    0x97AB00F2  # lhu t3, 0xf2(sp)
+  ]
   
   t2 = REG_DICT["t2"]
+  t3 = REG_DICT["t3"]
   a3 = REG_DICT["a3"]
 
   simulator = single_cycle.Single_Cycle()
-  simulator.memory.__init__(32)
+  simulator.memory.__init__(512)
   simulator.Register_File.__init__()
-  simulator.memory.Store_Word(0, instruction1)
-  simulator.memory.Store_Word(4, instruction2)
-  simulator.memory.Store_Word(8, instruction3)
+  for index in xrange(len(instructions)):
+    simulator.memory.Store_Word(4*index, instructions[index])
   simulator.cycle()
 
   # Check register
@@ -248,9 +258,22 @@ def test_loadstore():
   assert t2_val == 0x05
 
   simulator.cycle()
-  assert simulator.memory.Load_Word(0) == t2_val
+  assert simulator.memory.Load_Word(0xf0) == t2_val
 
   assert simulator.Register_File.Get(a3) == 0
   simulator.cycle()
   assert simulator.Register_File.Get(a3) == t2_val
+
+  simulator.cycle()
+  t3_val = simulator.Register_File.Get(t3)
+  assert t3_val == 0x12
+
+  simulator.cycle()
+  assert simulator.memory.Load_Word(0xf0) == 0x00120005
+
+  simulator.cycle()
+  assert simulator.Register_File.Get(a3) == 0x00120005
+
+  simulator.cycle()
+  assert simulator.Register_File.Get(t3) == 0x0012
 

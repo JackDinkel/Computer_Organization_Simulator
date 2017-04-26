@@ -55,7 +55,7 @@ class Single_Cycle(object):
     self.jump_addr = HW.Calculate_Jump_Addr(self.decoder.j_imm, self.incremented_pc)
     
     # Memory Access
-    memory_fetch = self.memory.Data_Operate(alu_result, read_data_2, self.controller.MemRead, self.controller.MemWrite)  
+    memory_fetch = self.memory.Data_Operate(alu_result, read_data_2, self.controller.MemRead, self.controller.MemWrite, self.controller.ALUOp)  
     
     # Write Back
     self.write_back = HW.Write_Back_Mux(memory_fetch, alu_result, self.controller.MemToReg)

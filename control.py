@@ -12,9 +12,15 @@ ALU_DICT = {
   "SLT"   : 9,
   "SLTU"  : 10,
   "NOT"   : 11,
-  "LOAD"  : 12,
-  "STORE" : 13,
-  "NOR"   : 14
+  "LW"    : 12,
+  "LH"    : 13,
+  "LB"    : 14,
+  "LHU"   : 15,
+  "LBU"   : 16,
+  "SW"    : 17,
+  "SH"    : 18,
+  "SB"    : 19,
+  "NOR"   : 20
 }
 
 class Controller(object):
@@ -178,7 +184,7 @@ class Controller(object):
       self.RegWrite = 1
       self.ALUOp    = ALU_DICT["OR"]
 
-    elif op == 0x0F: # LUI
+    elif op == 0x0F: # LUI TODO
       self.RegDst   = 0
       self.Branch   = 0
       self.Jump     = 0
@@ -198,7 +204,7 @@ class Controller(object):
       self.MemWrite = 0
       self.ALUSrc   = 1
       self.RegWrite = 1
-      self.ALUOp    = ALU_DICT["LOAD"]
+      self.ALUOp    = ALU_DICT["LW"]
 
     elif op == 0x24: # LBU
       self.RegDst   = 0
@@ -209,7 +215,7 @@ class Controller(object):
       self.MemWrite = 0
       self.ALUSrc   = 1
       self.RegWrite = 1
-      self.ALUOp    = ALU_DICT["LOAD"]
+      self.ALUOp    = ALU_DICT["LBU"]
 
     elif op == 0x25: # LHU
       self.RegDst   = 0
@@ -220,7 +226,7 @@ class Controller(object):
       self.MemWrite = 0
       self.ALUSrc   = 1
       self.RegWrite = 1
-      self.ALUOp    = ALU_DICT["LOAD"]
+      self.ALUOp    = ALU_DICT["LHU"]
 
     elif op == 0x28: # SB
       self.RegDst   = 0
@@ -231,7 +237,7 @@ class Controller(object):
       self.MemWrite = 1
       self.ALUSrc   = 1
       self.RegWrite = 0
-      self.ALUOp    = ALU_DICT["STORE"]
+      self.ALUOp    = ALU_DICT["SB"]
 
     elif op == 0x29: # SH
       self.RegDst   = 0
@@ -242,7 +248,7 @@ class Controller(object):
       self.MemWrite = 1
       self.ALUSrc   = 1
       self.RegWrite = 0
-      self.ALUOp    = ALU_DICT["STORE"]
+      self.ALUOp    = ALU_DICT["SH"]
 
     elif op == 0x2B: # SW
       self.RegDst   = 0
@@ -253,7 +259,7 @@ class Controller(object):
       self.MemWrite = 1
       self.ALUSrc   = 1
       self.RegWrite = 0
-      self.ALUOp    = ALU_DICT["STORE"]
+      self.ALUOp    = ALU_DICT["SW"]
 
     else:
       assert 0 == 1, "Operation not supported: %s" % op
