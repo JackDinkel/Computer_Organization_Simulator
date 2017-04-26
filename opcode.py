@@ -21,19 +21,19 @@ OP_DICT = {
   "JAL"   : 0x03,
   "BEQ"   : 0x04,
   "BNE"   : 0x05,
-  "ADDI"  : 0x08,
+  "ADDI"  : 0x08, #tested
   "ADDIU" : 0x09,
-  "SLTI"  : 0x0A,
+  "SLTI"  : 0x0A, #tested
   "SLTIU" : 0x0B,
   "ANDI"  : 0x0C,
   "ORI"   : 0x0D,
   "LUI"   : 0x0F,
-  "LW"    : 0x23,
+  "LW"    : 0x23, #tested
   "LBU"   : 0x24,
   "LHU"   : 0x25,
   "SB"    : 0x28,
   "SH"    : 0x29,
-  "SW"    : 0x2B
+  "SW"    : 0x2B #tested
   #"XORI"  =     
   #"BGTZ"  =     
   #"BLTZ"  =     
@@ -42,12 +42,12 @@ OP_DICT = {
 
 FUNCT_DICT = {
   #NOP   =     
-  "SLL"   : 0x00,
+  "SLL"   : 0x00, #tested
   "SRL"   : 0x02,
   "JR"    : 0x08,
-  "ADD"   : 0x20,
+  "ADD"   : 0x20, #tested
   "ADDU"  : 0x21,
-  "SUB"   : 0x22,
+  "SUB"   : 0x22, #tested
   "SUBU"  : 0x23,
   "AND"   : 0x24,
   "OR"    : 0x25,

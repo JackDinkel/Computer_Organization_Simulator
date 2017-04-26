@@ -1,5 +1,7 @@
 import pipeline_reg
 import hardware as HW
+from register import REG_DICT
+from opcode import OP_DICT
 from control import *
 from decode import *
 
@@ -28,18 +30,39 @@ def pipelineMain():
 	IFID.pc_out = 0x00000000 
 
 	# initialize some code
-	Instruction_Memory.Store_Word(0,  0x21490001) # addi t1 t2 0x0001
-	Instruction_Memory.Store_Word(4,  0x00000000) # nop
-	Instruction_Memory.Store_Word(8,  0x00000000) # nop
-	Instruction_Memory.Store_Word(12, 0x00000000) # nop
-	Instruction_Memory.Store_Word(16, 0x00000000) # nop
-	Instruction_Memory.Store_Word(16, 0x00000000) # nop
+	Instruction_Memory.Store_Word(0,  0x20080009) # addi t0 zero 0x0009
+	Instruction_Memory.Store_Word(4,  0x20090008) # addi t1 zero 0x0008
+	Instruction_Memory.Store_Word(8,  0x200a0007) # addi t2 zero 0x0007
+	Instruction_Memory.Store_Word(12, 0x200B0050) # addi t3 zero 0x0050
+	Instruction_Memory.Store_Word(16, 0x200c0005) # addi t4 zero 0x0005
+	Instruction_Memory.Store_Word(20, 0x200d0004) # addi t5 zero 0x0004
+	Instruction_Memory.Store_Word(24, 0x01097020) # add t6 t0 t1
+	Instruction_Memory.Store_Word(28, 0x00000000) # nop
+	Instruction_Memory.Store_Word(32, 0xAD680000) # sw t0, 0x0(t3)
+	Instruction_Memory.Store_Word(36, 0x000DC840) # sll t9 t5 0x1
+	Instruction_Memory.Store_Word(40, 0x00000000) # nop
+	Instruction_Memory.Store_Word(44, 0x00000000) # nop
+	Instruction_Memory.Store_Word(48, 0x00000000) # nop
+	Instruction_Memory.Store_Word(52, 0x8C090050) # lw t1, 0x50(zero)
+	Instruction_Memory.Store_Word(56, 0x00000000) # nop
+	Instruction_Memory.Store_Word(60, 0x00000000) # nop
+	Instruction_Memory.Store_Word(64, 0x00000000) # nop
+	Instruction_Memory.Store_Word(68, 0x00000000) # nop
 
 	# start pipeline
-	for i in range(1,6):
+	for i in range(1,20):
 		pipelineLoop()
 
-	print "result: %d" % Register_File.Get(9)
+	print "t0: %d" % Register_File.Get(REG_DICT["t0"])
+	print "t1: %d" % Register_File.Get(REG_DICT["t1"])
+	print "t2: %d" % Register_File.Get(REG_DICT["t2"])
+	print "t3: %d" % Register_File.Get(REG_DICT["t3"])
+	print "t4: %d" % Register_File.Get(REG_DICT["t4"])
+	print "t5: %d" % Register_File.Get(REG_DICT["t5"])
+	print "t6: %d" % Register_File.Get(REG_DICT["t6"])
+	print "t7: %d" % Register_File.Get(REG_DICT["t7"])
+	print "t8: %d" % Register_File.Get(REG_DICT["t8"])
+	print "t9: %d" % Register_File.Get(REG_DICT["t9"])
 
 def pipelineLoop():
 	IF()
@@ -70,10 +93,7 @@ def ID():
 	updateControl(IFID.instruction_out.op, IFID.instruction_out.funct, 
 		excTemp, memcTemp, wbcTemp)
 
-	print "RW: %d" % wbcTemp.RegWrite
-
 	# Register file operations
-	print "RegW: %d\n" % MEMWB.wbControl_out.RegWrite
 	read_data_1, read_data_2 = Register_File.Operate(IFID.instruction_out.rs, 
 		IFID.instruction_out.rt, MEMWB.destinationReg_out, WriteData, 
 		MEMWB.wbControl_out.RegWrite)

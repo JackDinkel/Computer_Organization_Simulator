@@ -103,7 +103,7 @@ def updateControl(op, funct, exc, memc, wbc):
     memc.MemWrite = 0
     exc.ALUSrc   = 1
     wbc.RegWrite = 0
-    exc.ALUOp    = ALU_DICT["BEQ"]
+    exc.ALUOp    = ALU_DICT["X"]
 
   elif op == 0x05: # BNE
     exc.RegDst   = 0

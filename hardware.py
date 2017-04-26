@@ -13,6 +13,7 @@
 '''
 
 from control import ALU_DICT
+from opcode import OP_DICT
 from globals import *
 
 def twos_comp(val, num_bits):
@@ -216,7 +217,7 @@ class Register_File(object):
     assert unsigned(write_data, 32) >= 0x0 and unsigned(write_data, 32) <= 0xFFFFFFFF, "write_data out of bounds: %s" % write_data
     assert RegWrite == 0 or RegWrite == 1, "RegWrite out of bounds: %s" % RegWrite
 
-    if RegWrite:
+    if RegWrite and write_reg != 0:
       self.__register_list[write_reg].Update(write_data)
 
     read_data_1 = self.__register_list[read_reg_1].Get()
@@ -305,18 +306,18 @@ class Data_Memory(Memory):
   def Operate(self, address, write_data, MemRead, MemWrite, op):
     read_data = 0
 
-    if MemRead and OP_DICT("LW"):
+    if MemRead and OP_DICT["LW"]:
       read_data = Memory.Load_Word(self, address)
-    elif MemRead and OP_DICT("LHU"):
+    elif MemRead and OP_DICT["LHU"]:
       read_data = Memory.Load_Half_Unsigned(self, address)
-    elif MemRead and OP_DICT("LBU"):
+    elif MemRead and OP_DICT["LBU"]:
       read_data = Memory.Load_Byte_Unsigned(self, address)
 
-    if MemWrite and OP_DICT("SW"):
+    if MemWrite and OP_DICT["SW"]:
       Memory.Store_Word(self, address, write_data)
-    elif MemWrite and OP_DICT("SH"):
+    elif MemWrite and OP_DICT["SH"]:
       Memory.Store_Half(self, address, write_data)
-    elif MemWrite and OP_DICT("SB"):
+    elif MemWrite and OP_DICT["SB"]:
       Memory.Store_Byte(self, address, write_data)
 
     return read_data
