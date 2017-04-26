@@ -166,8 +166,8 @@ def test_add_shift():
   a2 = REG_DICT["a2"]
 
   simulator = single_cycle.Single_Cycle()
-  simulator.Instruction_Memory.Store_Word(0, instruction1)
-  simulator.Instruction_Memory.Store_Word(4, instruction2)
+  simulator.memory.Store_Word(0, instruction1)
+  simulator.memory.Store_Word(4, instruction2)
   simulator.cycle()
 
   # Check register
@@ -183,10 +183,10 @@ def test_add_shift():
 def test_signed_add():
   instruction = 0x27bdfff0 # addiu sp,sp,-16
   simulator = single_cycle.Single_Cycle()
-  simulator.Instruction_Memory.__init__(5)
-  simulator.Data_Memory.__init__(5)
+  simulator.memory.__init__(5)
+  simulator.memory.__init__(5)
   simulator.Register_File.__init__()
-  simulator.Instruction_Memory.Store_Word(0, instruction)
+  simulator.memory.Store_Word(0, instruction)
   simulator.cycle()
 
   sp = REG_DICT["sp"]
@@ -236,27 +236,21 @@ def test_loadstore():
   a3 = REG_DICT["a3"]
 
   simulator = single_cycle.Single_Cycle()
-  simulator.Instruction_Memory.__init__(32)
-  simulator.Data_Memory.__init__(32)
+  simulator.memory.__init__(32)
   simulator.Register_File.__init__()
-  simulator.Instruction_Memory.Store_Word(0, instruction1)
-  simulator.Instruction_Memory.Store_Word(4, instruction2)
-  simulator.Instruction_Memory.Store_Word(8, instruction3)
+  simulator.memory.Store_Word(0, instruction1)
+  simulator.memory.Store_Word(4, instruction2)
+  simulator.memory.Store_Word(8, instruction3)
   simulator.cycle()
 
   # Check register
   t2_val = simulator.Register_File.Get(t2)
   assert t2_val == 0x05
 
-  #simulator.Data_Memory.display()
-  #print simulator.Register_File.GetList()
   simulator.cycle()
-  #simulator.Data_Memory.display()
-  assert simulator.Data_Memory.Load_Word(0) == t2_val
+  assert simulator.memory.Load_Word(0) == t2_val
 
   assert simulator.Register_File.Get(a3) == 0
   simulator.cycle()
-  print simulator.decoder.display()
-  print simulator.controller.display()
   assert simulator.Register_File.Get(a3) == t2_val
 

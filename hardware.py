@@ -163,6 +163,16 @@ class Memory(object):
     # Write updated word
     self.__data[index] = word_to_write
 
+  def Operate(self, address, write_data, MemRead, MemWrite):
+    read_data = 0
+
+    if MemRead:
+      read_data = Memory.Load_Word(self, address)
+    if MemWrite:
+      Memory.Store_Word(self, address, write_data)
+
+    return read_data
+
   def display(self):
     print self.__data
 
@@ -183,9 +193,9 @@ class PC(Register):
 
 
 
-class Instruction_Memory(Memory):
-  def __init__(self, size):
-    Memory.__init__(self, size)
+#class Instruction_Memory(Memory):
+#  def __init__(self, size):
+#    Memory.__init__(self, size)
 
 
 
@@ -305,19 +315,19 @@ def Address_Adder(next_pc, shifted_num):
 
 
 ## Memory Access ##
-class Data_Memory(Memory):
-  def __init__(self, size):
-    Memory.__init__(self, size)
-
-  def Operate(self, address, write_data, MemRead, MemWrite):
-    read_data = 0
-
-    if MemRead:
-      read_data = Memory.Load_Word(self, address)
-    if MemWrite:
-      Memory.Store_Word(self, address, write_data)
-
-    return read_data
+#class Data_Memory(Memory):
+#  def __init__(self, size):
+#    Memory.__init__(self, size)
+#
+#  def Operate(self, address, write_data, MemRead, MemWrite):
+#    read_data = 0
+#
+#    if MemRead:
+#      read_data = Memory.Load_Word(self, address)
+#    if MemWrite:
+#      Memory.Store_Word(self, address, write_data)
+#
+#    return read_data
 
 
 
