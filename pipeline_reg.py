@@ -1,26 +1,26 @@
 import decode
-import control
+from control import WBControl, MEMControl, EXControl
 
 class IFID:
 	# IF side
-	instruction_in = Instruction()
+	instruction_in = decode.Instruction()
 	pc_in = 0
 
 	# ID side
-	instruction_out = Instruction()
+	instruction_out = decode.Instruction()
 	pc_out = 0
 
-	def set(this, i_in, p_in):
-		instruction_in = i_in
-		pc_in = p_in
+	def set(self, i_in, p_in):
+		self.instruction_in = i_in
+		self.pc_in = p_in
 
-	def update(this):
-		instruction_out = instruction_in
-		pc_out = pc_in
+	def update(self):
+		self.instruction_out = self.instruction_in
+		self.pc_out = self.pc_in
 
 class IDEX:
 	# ID side
-	instruction_in = Instruction()
+	instruction_in = decode.Instruction()
 	signExtendImm_in = 0
 	pc_in = 0
 	readData1_in = 0
@@ -30,7 +30,7 @@ class IDEX:
 	exControl_in  = EXControl()
 
 	# EX side
-	instruction_out = Instruction()
+	instruction_out = decode.Instruction()
 	signExtendImm_out = 0
 	pc_out = 0
 	readData1_out = 0
@@ -39,29 +39,29 @@ class IDEX:
 	memControl_out = MEMControl()
 	exControl_out  = EXControl()
 
-	def set(this, i_in, sEx_in, p_in, rd1_in, rd2_in, wb_in, mem_in, ex_in):
-		instruction_in = i_in
-		signExtendImm_in = sEx_in
-		pc_in = p_in
-		readData1_in = rd1_in
-		readData2_in = rd2_in
-		wbControl_in = wb_in
-		memControl_in = mem_in
-		exControl_in = ex_in
+	def set(self, i_in, sEx_in, p_in, rd1_in, rd2_in, wb_in, mem_in, ex_in):
+		self.instruction_in = i_in
+		self.signExtendImm_in = sEx_in
+		self.pc_in = p_in
+		self.readData1_in = rd1_in
+		self.readData2_in = rd2_in
+		self.wbControl_in = wb_in
+		self.memControl_in = mem_in
+		self.exControl_in = ex_in
 
-	def update(this):
-		instruction_out = instruction_in
-		signExtendImm_out = signExtendImm_in
-		pc_out = pc_in
-		readData1_out = readData1_in
-		readData2_out = readData2_in
-		wbControl_out = wbControl_in
-		memControl_out = memControl_in
-		exControl_out = exControl_in
+	def update(self):
+		self.instruction_out = self.instruction_in
+		self.signExtendImm_out = self.signExtendImm_in
+		self.pc_out = self.pc_in
+		self.readData1_out = self.readData1_in
+		self.readData2_out = self.readData2_in
+		self.wbControl_out = self.wbControl_in
+		self.memControl_out = self.memControl_in
+		self.exControl_out = self.exControl_in
 
 class EXMEM:
 	# EX side
-	instruction_in = Instruction()
+	instruction_in = decode.Instruction()
 	destinationReg_in = 0
 	readData2_in = 0
 	ALUResult_in = 0
@@ -72,7 +72,7 @@ class EXMEM:
 	memControl_in = MEMControl()
 
 	# MEM side
-	instruction_out = Instruction()
+	instruction_out = decode.Instruction()
 	destinationReg_out = 0
 	readData2_out = 0
 	ALUResult_out = 0
@@ -82,27 +82,27 @@ class EXMEM:
 	wbControl_out  = WBControl()
 	memControl_out = MEMControl()
 
-	def set(this, i_in, destReg_in, rd2_in, aluR_in, z_in, bAdd_in, jAdd_in, wbc_in, memc_in):
-		instruction_in = i_in
-		destinationReg_in = destReg_in
-		readData2_in = rd2_in
-		ALUResult_in = aluR_in
-		zero_in = z_in
-		branchAddress_in = bAdd_in
-		jumpAddress_in = jAdd_in
-		wbControl_in  = wbc_in
-		memControl_in = memc_in
+	def set(self, i_in, destReg_in, rd2_in, aluR_in, z_in, bAdd_in, jAdd_in, wbc_in, memc_in):
+		self.instruction_in = i_in
+		self.destinationReg_in = destReg_in
+		self.readData2_in = rd2_in
+		self.ALUResult_in = aluR_in
+		self.zero_in = z_in
+		self.branchAddress_in = bAdd_in
+		self.jumpAddress_in = jAdd_in
+		self.wbControl_in  = wbc_in
+		self.memControl_in = memc_in
 
-	def update(this):
-		instruction_out = instruction_in
-		destinationReg_out = destinationReg_in
-		readData2_out = readData2_in
-		ALUResult_out = ALUResult_in
-		zero_out = zero_in
-		branchAddress_out = branchAddress_in
-		jumpAddress_out = jumpAddress_in
-		wbControl_out  = wbControl_in
-		memControl_out = memControl_in
+	def update(self):
+		self.instruction_out = self.instruction_in
+		self.destinationReg_out = self.destinationReg_in
+		self.readData2_out = self.readData2_in
+		self.ALUResult_out = self.ALUResult_in
+		self.zero_out = self.zero_in
+		self.branchAddress_out = self.branchAddress_in
+		self.jumpAddress_out = self.jumpAddress_in
+		self.wbControl_out  = self.wbControl_in
+		self.memControl_out = self.memControl_in
 
 class MEMWB:
 	# EX side
@@ -117,14 +117,14 @@ class MEMWB:
 	readData_out = 0
 	wbControl_out  = WBControl()
 
-	def set(this, dReg_in, aluR_in, rd_in, wb_in):
-		destinationReg_in = dReg_in
-		ALUResult_in = aluR_in
-		readData_in = rd_in
-		wbControl_in = wb_in
+	def set(self, dReg_in, aluR_in, rd_in, wb_in):
+		self.destinationReg_in = dReg_in
+		self.ALUResult_in = aluR_in
+		self.readData_in = rd_in
+		self.wbControl_in = wb_in
 
-	def update(this):
-		destinationReg_out = destinationReg_in
-		ALUResult_out = ALUResult_in
-		readData_out = readData_in
-		wbControl_out  = wbControl_in
+	def update(self):
+		self.destinationReg_out = self.destinationReg_in
+		self.ALUResult_out = self.ALUResult_in
+		self.readData_out = self.readData_in
+		self.wbControl_out  = self.wbControl_in

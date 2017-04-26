@@ -69,7 +69,7 @@ def updateControl(op, funct, exc, memc, wbc):
     memc.MemWrite = 0
     exc.ALUSrc   = 0
     wbc.RegWrite = 1
-    exc.ALUOp    = self.__funct_dic[funct]
+    exc.ALUOp    = funct_dic[funct]
 
   elif op == 0x02: # J
     exc.RegDst   = 0

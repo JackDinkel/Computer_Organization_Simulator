@@ -239,41 +239,40 @@ def ALU_Input_Mux(register, sign_extended, ALUSrc):
 
 
 def ALU(input1, input2, shamt, ALUControl):
-  # TODO: How does this interface with ALU Control? What is the zero Zero line on page 265?
   if   ALUControl == ALU_DICT["X"]:
-    return 0, 0
+    return 0
   elif ALUControl == ALU_DICT["AND"]:
-    return input1 & input2, 0
+    return input1 & input2
   elif ALUControl == ALU_DICT["OR"]:
-    return input1 | input2, 0
+    return input1 | input2
   elif ALUControl == ALU_DICT["ADD"]:
     input1 = twos_comp(input1, 32)
     input2 = twos_comp(input2, 32)
-    return input1 + input2, 0
+    return input1 + input2
   elif ALUControl == ALU_DICT["ADDU"]:
-    return input1 + input2, 0 # TODO
+    return input1 + input2 # TODO
   elif ALUControl == ALU_DICT["SUB"]:
     input1 = twos_comp(input1, 32)
     input2 = twos_comp(input2, 32)
-    return input1 - input2, 0
+    return input1 - input2
   elif ALUControl == ALU_DICT["SUBU"]:
-    return input1 - input2, 0 # TODO
+    return input1 - input2 # TODO
   elif ALUControl == ALU_DICT["SLL"]:
-    return input2 << shamt, 0
+    return input2 << shamt
   elif ALUControl == ALU_DICT["SRL"]:
-    return logical_rshift(input2, shamt), 0
+    return logical_rshift(input2, shamt)
   elif ALUControl == ALU_DICT["SLT"]:
-    return (input1 < input2), 0 # TODO
+    return (input1 < input2) # TODO
   elif ALUControl == ALU_DICT["SLTU"]:
-    return (input1 < input2), 0 # TODO
+    return (input1 < input2) # TODO
   elif ALUControl == ALU_DICT["NOT"]:
-    return ~input1, 0 # TODO
+    return ~input1 # TODO
   elif ALUControl == ALU_DICT["LOAD"]:
-    return input1 + input2, 0
+    return input1 + input2
   elif ALUControl == ALU_DICT["STORE"]:
-    return input1 + input2, 0
+    return input1 + input2
   elif ALUControl == ALU_DICT["NOR"]:
-    return ~(input1 | input2), 0 # TODO
+    return ~(input1 | input2) # TODO
   else:
     assert 1 == 2, "Invalid Operation: %s" % ALUControl
 
@@ -306,11 +305,19 @@ class Data_Memory(Memory):
   def Operate(self, address, write_data, MemRead, MemWrite, op):
     read_data = 0
 
-    # TODO: add switch case to decide memory operation based on "op"
-    if MemRead:
+    if MemRead and OP_DICT("LW"):
       read_data = Memory.Load_Word(self, address)
-    if MemWrite:
+    elif MemRead and OP_DICT("LHU"):
+      read_data = Memory.Load_Half_Unsigned(self, address)
+    elif MemRead and OP_DICT("LBU"):
+      read_data = Memory.Load_Byte_Unsigned(self, address)
+
+    if MemWrite and OP_DICT("SW"):
       Memory.Store_Word(self, address, write_data)
+    elif MemWrite and OP_DICT("SH"):
+      Memory.Store_Half(self, address, write_data)
+    elif MemWrite and OP_DICT("SB"):
+      Memory.Store_Byte(self, address, write_data)
 
     return read_data
 

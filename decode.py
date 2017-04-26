@@ -12,14 +12,14 @@ class Instruction:
   j_imm = 0
 
 def displayInstruction(instr):
-  print "op:", self.op
-  print "rs:", self.rs
-  print "rt:", self.rt
-  print "rd:", self.rd
-  print "shamt:", self.shamt
-  print "funct:", self.funct
-  print "i_imm:", self.i_imm
-  print "j_imm:", self.j_imm
+  print "op:", instr.op
+  print "rs:", instr.rs
+  print "rt:", instr.rt
+  print "rd:", instr.rd
+  print "shamt:", instr.shamt
+  print "funct:", instr.funct
+  print "i_imm:", instr.i_imm
+  print "j_imm:", instr.j_imm
 
 def decodeInstruction(instr):
   value = instr.word
