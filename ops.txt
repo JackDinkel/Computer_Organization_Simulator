@@ -1,39 +1,43 @@
-op    format  Opcode  Funct
+op    format  Opcode  Funct  Notes
 _______________________________________
-nop   
-sll   R       00      00
-srl   R       00      02
-jr    R       00      08
+nop           00      00     SLL r0, r0, 0
 add   R       00      20
 addu  R       00      21
-sub   R       00      22
-subu  R       00      23
 and   R       00      24
-or    R       00      25
+jr    R       00      08
 nor   R       00      27
+or    R       00      25
+movn  R       00      0B     Move Conditional on Not Zero, p187
+movz  R       00      0A     Move conditional on Zero, p193
 slt   R       00      2A
 sltu  R       00      2B
-movn  
-movz  
-xor   
-j     J       02
-jal   J       03
-beq   I       04
-bne   I       05
+sll   R       00      00
+srl   R       00      02
+sub   R       00      22
+subu  R       00      23
+xor   R       00      26
 addi  I       08
 addiu I       09
+andi  I       0C
+xori  I       0E
+beq   I       04
+bne   I       05
+bgtz  I       07              Branch on Greater than Zero
+bltz  I       01              Branch on Less Than Zero
+blez  I       06              Branch on Less Than or Equal to Zero
+j     J       02
+jal   J       03
+lb    I       20
+lbu   I       24
+lh    I       21
+lhu   I       25
+lui   I       0F              Load Upper Immediate
+lw    I       23
+ori   I       0D
 slti  I       0A
 sltiu I       0B
-andi  I       0C
-ori   I       0D
-lui   I       0F
-lw    I       23
-lbu   I       24
-lhu   I       25
 sb    I       28
 sh    I       29
 sw    I       2B
-xori  
-bgtz
-bltz
-blez
+seb           1F      SEB: 10  BSHFL: 20 This confuses me, MIPS reference p250
+
