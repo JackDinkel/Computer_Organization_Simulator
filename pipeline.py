@@ -53,7 +53,7 @@ def pipelineMain():
 	for i in range(1,20):
 		pipelineLoop()
 
-	print "t0: %d" % Register_File.Get(REG_DICT["t0"])
+	print "\nt0: %d" % Register_File.Get(REG_DICT["t0"])
 	print "t1: %d" % Register_File.Get(REG_DICT["t1"])
 	print "t2: %d" % Register_File.Get(REG_DICT["t2"])
 	print "t3: %d" % Register_File.Get(REG_DICT["t3"])

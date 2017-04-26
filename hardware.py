@@ -310,12 +310,12 @@ def Forwarding_Unit(idex_rs, idex_rt, exmem_rd, memwb_rd, exmem_reg_write, memwb
     forwardB = 2
 
   if ((memwb_reg_write == 1) and (memwb_rd != 0) and 
-    not ((exmem_reg_write == 1) and (exmem_rd != 0) and (exmem_rd != idex_rs)) 
+    not ((exmem_reg_write == 1) and (exmem_rd != 0) and (exmem_rd == idex_rs)) 
     and (memwb_rd == idex_rs)):
     forwardA = 1
 
   if ((memwb_reg_write == 1) and (memwb_rd != 0) and 
-    not ((exmem_reg_write == 1) and (exmem_rd != 0) and (exmem_rd != idex_rt)) 
+    not ((exmem_reg_write == 1) and (exmem_rd != 0) and (exmem_rd == idex_rt)) 
     and (memwb_rd == idex_rt)):
     forwardB = 1
 
