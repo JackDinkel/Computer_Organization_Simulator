@@ -132,7 +132,7 @@ def test_get_byte():
   assert mask.Get_Byte(num, 2) == 0x34
   assert mask.Get_Byte(num, 3) == 0x12
   assert mask.Get_Half(num, 0) == 0x5678
-  assert mask.Get_Half(num, 1) == 0x1234
+  assert mask.Get_Half(num, 2) == 0x1234
 
 
 
@@ -196,12 +196,34 @@ def test_signed_add():
   assert sp_val == -16
 
 
-@pytest.mark.skip
 def test_memory():
-  simulator = single_cycle.Single_Cycle()
-  simulator.Instruction_Memory.__init__(5)
-  simulator.Data_Memory.__init__(5)
-  simulator.Register_File.__init__()
+  mem = HW.Memory(32)
+  mem.display()
+  mem.Store_Word(8, 0xf2345688)
+  assert mem.Load_Word(8) == 0xf2345688
+  assert mem.Load_Half(8) == 0x00005688
+  assert mem.Load_Half(10) == 0xfffff234
+  assert mem.Load_Half_Unsigned(8) == 0x00005688
+  assert mem.Load_Half_Unsigned(10) == 0x0000f234
+  assert mem.Load_Byte(8) == 0xffffff88
+  assert mem.Load_Byte(9) == 0x00000056
+  assert mem.Load_Byte(10) == 0x00000034
+  assert mem.Load_Byte(11) == 0xfffffff2
+  assert mem.Load_Byte_Unsigned(8) == 0x00000088
+  assert mem.Load_Byte_Unsigned(9) == 0x00000056
+  assert mem.Load_Byte_Unsigned(10) == 0x00000034
+  assert mem.Load_Byte_Unsigned(11) == 0x000000f2
+
+
+  mem.Store_Byte(10, 0xcc)
+  assert mem.Load_Word(8) == 0xf2cc5688
+  assert mem.Load_Byte_Unsigned(10) == 0x000000cc
+
+  mem.Store_Half(10, 0xaaaa)
+  mem.display()
+  assert mem.Load_Half_Unsigned(10) == 0x0000aaaa
+  assert mem.Load_Word(8) == 0xaaaa5688
+
 
 
 
@@ -214,8 +236,8 @@ def test_loadstore():
   a3 = REG_DICT["a3"]
 
   simulator = single_cycle.Single_Cycle()
-  simulator.Instruction_Memory.__init__(5)
-  simulator.Data_Memory.__init__(5)
+  simulator.Instruction_Memory.__init__(32)
+  simulator.Data_Memory.__init__(32)
   simulator.Register_File.__init__()
   simulator.Instruction_Memory.Store_Word(0, instruction1)
   simulator.Instruction_Memory.Store_Word(4, instruction2)

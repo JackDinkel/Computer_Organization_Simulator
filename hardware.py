@@ -14,6 +14,7 @@
 
 from control import ALU_DICT
 from globals import *
+import mask
 
 def twos_comp(val, num_bits):
   # Returns 2's comp interpreted value from unsigned
@@ -63,7 +64,7 @@ class Memory(object):
   __data = []
 
   def __init__(self, size):
-    self.__data = [0 for _ in xrange(size)]
+    self.__data = [0 for _ in xrange(size/4)]
 
   def __del__(self):
     self.__data = []
@@ -79,15 +80,17 @@ class Memory(object):
     offset = address % 4
     assert len(self.__data) > 0, "Memory is empty!"
     assert index >= 0 and index < len(self.__data), "address out of bounds: %s" % address
-    word = twos_comp(self.__data[index])
-    return Sign_Extend(mask.Get_Half(word, offset))
+    assert offset == 0 or offset == 2, "offset out of bounds: %s" % offset
+    word = self.__data[index]
+    return Sign_Extend(mask.Get_Half(word, offset), 16)
 
   def Load_Half_Unsigned(self, address):
     index  = address / 4
     offset = address % 4
     assert len(self.__data) > 0, "Memory is empty!"
     assert index >= 0 and index < len(self.__data), "address out of bounds: %s" % address
-    word = twos_comp(self.__data[index])
+    assert offset == 0 or offset == 2, "offset out of bounds: %s" % offset
+    word = self.__data[index]
     return mask.Get_Half(word, offset)
 
   def Load_Byte(self, address):
@@ -95,15 +98,15 @@ class Memory(object):
     offset = address % 4
     assert len(self.__data) > 0, "Memory is empty!"
     assert index >= 0 and index < len(self.__data), "address out of bounds: %s" % address
-    word = twos_comp(self.__data[index])
-    return Sign_Extend(mask.Get_Byte(word, offset))
+    word = self.__data[index]
+    return Sign_Extend(mask.Get_Byte(word, offset), 8)
 
   def Load_Byte_Unsigned(self, address):
     index  = address / 4
     offset = address % 4
     assert len(self.__data) > 0, "Memory is empty!"
     assert index >= 0 and index < len(self.__data), "address out of bounds: %s" % address
-    word = twos_comp(self.__data[index])
+    word = self.__data[index]
     return mask.Get_Byte(word, offset)
     
   def Store_Word(self, address, data):
@@ -119,18 +122,18 @@ class Memory(object):
     assert len(self.__data) > 0, "Memory is empty!"
     assert index >= 0 and index < len(self.__data), "address out of bounds: %s" % address
     assert unsigned(data, 32) >= 0x0 and unsigned(data, 32) <= 0xFFFFFFFF, "data out of bounds: %s" % data
-    assert offset >= 0 and offset < 2
+    assert offset == 0 or offset == 2, "offset out of bounds: %s" % offset
 
-    shamt = offset * 16
+    shamt = offset * 8
 
     # Get current word
-    word = self.Load_Word(address, data)
-    mask = 0xFFFF << shamt
+    word = self.Load_Word(address)
+    mask = ~(0xFFFF << shamt)
     shifted_word = word & mask
 
     # Update current word
     shifted_data = data << shamt
-    word_to_write = shifted_word | sifted_data
+    word_to_write = shifted_word | shifted_data
 
     # Write updated word
     self.__data[index] = word_to_write
@@ -146,13 +149,16 @@ class Memory(object):
     shamt = offset * 8
 
     # Get current word
-    word = self.Load_Word(address, data)
-    mask = 0xFF << shamt
+    word = self.Load_Word(address)
+    mask = ~(0xFF << shamt)
     shifted_word = word & mask
+    print "shifted word", hex(shifted_word)
 
     # Update current word
+    print "data", hex(data)
     shifted_data = data << shamt
-    word_to_write = shifted_word | sifted_data
+    word_to_write = shifted_word | shifted_data
+    print "word to write", hex(word_to_write)
 
     # Write updated word
     self.__data[index] = word_to_write
