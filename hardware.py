@@ -163,7 +163,17 @@ class Memory(object):
     # Write updated word
     self.__data[index] = word_to_write
 
-  def Operate(self, address, write_data, MemRead, MemWrite):
+  def Data_Operate(self, address, write_data, MemRead, MemWrite):
+    read_data = 0
+
+    if MemRead:
+      read_data = Memory.Load_Word(self, address)
+    if MemWrite:
+      Memory.Store_Word(self, address, write_data)
+
+    return read_data
+
+  def Instruction_Operate(self, address, write_data, MemRead, MemWrite):
     read_data = 0
 
     if MemRead:
