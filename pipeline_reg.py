@@ -10,13 +10,18 @@ class IFID:
 	instruction_out = decode.Instruction()
 	pc_out = 0
 
+	stall = 0
+
 	def set(self, i_in, p_in):
 		self.instruction_in = i_in
 		self.pc_in = p_in
 
 	def update(self):
-		self.instruction_out = self.instruction_in
-		self.pc_out = self.pc_in
+		if self.stall == 0:
+			self.instruction_out = self.instruction_in
+			self.pc_out = self.pc_in
+		else:
+			self.stall = 0
 
 class IDEX:
 	# ID side

@@ -233,6 +233,28 @@ def Sign_Extend(input_val, num_bits):
   return twos_val if twos_val >= 0 else (twos_val + 0x100000000)
 
 
+def Hazard_Detection_Unit(memread, idex_rt, ifid_rs, ifid_rt):
+  if ((memread == 1) and ((idex_rt == ifid_rt) or (idex_rt == ifid_rs))):
+    return 1
+  else:
+    return 0
+
+
+def Hazard_Detection_Mux(exc, memc, wbc, hazard):
+  if hazard == 1:
+    exc.RegDst    = 0
+    memc.Branch   = 0
+    memc.Jump     = 0
+    memc.MemRead  = 0
+    wbc.MemToReg  = 0
+    memc.MemWrite = 0
+    exc.ALUSrc    = 0
+    wbc.RegWrite  = 0
+    exc.ALUOp     = 0
+  return exc, memc, wbc
+
+
+
 ## Execute and Address Calculation ##
 def ALU_Input_Mux(register, sign_extended, ALUSrc):
   return MUX(register, sign_extended, ALUSrc)

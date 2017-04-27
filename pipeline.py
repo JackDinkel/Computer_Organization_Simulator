@@ -34,9 +34,9 @@ def pipelineMain():
 	Instruction_Memory.Store_Word(4,  0x200a0003) # addi t2 zero 0x0003
 	Instruction_Memory.Store_Word(8,  0x200b0004) # addi t3 zero 0x0004
 	Instruction_Memory.Store_Word(12, 0x200c0005) # addi t4 zero 0x0005
-	Instruction_Memory.Store_Word(16, 0x012A4820) # add t1 t1 t2
-	Instruction_Memory.Store_Word(20, 0x012B4820) # add t1 t1 t3
-	Instruction_Memory.Store_Word(24, 0x012C4820) # add t1 t1 t4
+	Instruction_Memory.Store_Word(16, 0x8C0D0030) # lw t5, 0x30(zero)
+	Instruction_Memory.Store_Word(20, 0x018D6020) # add t4 t4 t5
+	Instruction_Memory.Store_Word(24, 0x200e0007) # addi t6 zero 0x0007
 	Instruction_Memory.Store_Word(28, 0x00000000) # nop
 	Instruction_Memory.Store_Word(32, 0x00000000) # nop
 	Instruction_Memory.Store_Word(36, 0x00000000) # nop
@@ -48,6 +48,7 @@ def pipelineMain():
 	Instruction_Memory.Store_Word(60, 0x00000000) # nop
 	Instruction_Memory.Store_Word(64, 0x00000000) # nop
 	Instruction_Memory.Store_Word(68, 0x00000000) # nop
+	Data_Memory.Store_Word(48, 0x00000005)
 
 	# start pipeline
 	for i in range(1,20):
@@ -79,7 +80,7 @@ def IF():
 		PCSrc, EXMEM.memControl_out.Jump)
 
 	instruction_temp.word = Instruction_Memory.Load_Word(pc)
-	
+
 	IFID.set(instruction_temp, pc+4)
 
 def ID():
@@ -92,6 +93,13 @@ def ID():
 	wbcTemp = WBControl()
 	updateControl(IFID.instruction_out.op, IFID.instruction_out.funct, 
 		excTemp, memcTemp, wbcTemp)
+
+	# hazard detection
+	data_hazard = HW.Hazard_Detection_Unit(IDEX.memControl_out.MemRead, IDEX.instruction_out.rt, 
+		IFID.instruction_out.rs, IFID.instruction_out.rt)
+	HW.Hazard_Detection_Mux(excTemp, memcTemp, wbcTemp, data_hazard)
+	if data_hazard == 1:
+		IFID.stall = 1
 
 	# Register file operations
 	read_data_1, read_data_2 = Register_File.Operate(IFID.instruction_out.rs, 
