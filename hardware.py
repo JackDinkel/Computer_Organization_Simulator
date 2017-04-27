@@ -45,7 +45,7 @@ class Register(object):
   def __init__(self):
     self.__value = 0
 
-  def Update(self, new_val):
+  def Set(self, new_val):
     assert unsigned(new_val, 32) >= 0x0 and unsigned(new_val, 32) <= 0xFFFFFFFF, "new_val out of bounds: %s" % new_val
     self.__value = new_val
 
@@ -63,8 +63,13 @@ class Memory(object):
   # A list of all instructions
   __data = []
 
-  def __init__(self, size):
-    self.__data = [0 for _ in xrange(size/4)]
+  #def __init__(self, size):
+  #  self.__data = [0 for _ in xrange(size/4)]
+
+  def __init__(self, contents, size):
+      self.__data = contents
+      for _ in xrange(size - len(self.__data)):
+        self.__data.append(0)
 
   def __del__(self):
     self.__data = []
@@ -72,14 +77,14 @@ class Memory(object):
   def Load_Word(self, address):
     index = address / 4
     assert len(self.__data) > 0, "Memory is empty!"
-    assert index >= 0 and index < len(self.__data), "address out of bounds: %s" % address
+    assert index >= 0 and index < len(self.__data), "index out of bounds: %s in memory size %s" % (index, len(self.__data))
     return self.__data[index]
 
   def Load_Half(self, address):
     index  = address / 4
     offset = address % 4
     assert len(self.__data) > 0, "Memory is empty!"
-    assert index >= 0 and index < len(self.__data), "address out of bounds: %s" % address
+    assert index >= 0 and index < len(self.__data), "index out of bounds: %s in memory size %s" % (index, len(self.__data))
     assert offset == 0 or offset == 2, "offset out of bounds: %s" % offset
     word = self.__data[index]
     return Sign_Extend(mask.Get_Half(word, offset), 16)
@@ -88,7 +93,7 @@ class Memory(object):
     index  = address / 4
     offset = address % 4
     assert len(self.__data) > 0, "Memory is empty!"
-    assert index >= 0 and index < len(self.__data), "address out of bounds: %s" % address
+    assert index >= 0 and index < len(self.__data), "index out of bounds: %s in memory size %s" % (index, len(self.__data))
     assert offset == 0 or offset == 2, "offset out of bounds: %s" % offset
     word = self.__data[index]
     return mask.Get_Half(word, offset)
@@ -97,7 +102,8 @@ class Memory(object):
     index  = address / 4
     offset = address % 4
     assert len(self.__data) > 0, "Memory is empty!"
-    assert index >= 0 and index < len(self.__data), "address out of bounds: %s" % address
+    assert index >= 0 and index < len(self.__data), "index out of bounds: %s in memory size %s" % (index, len(self.__data))
+    assert offset == 0 or offset == 2, "offset out of bounds: %s" % offset
     word = self.__data[index]
     return Sign_Extend(mask.Get_Byte(word, offset), 8)
 
@@ -105,14 +111,14 @@ class Memory(object):
     index  = address / 4
     offset = address % 4
     assert len(self.__data) > 0, "Memory is empty!"
-    assert index >= 0 and index < len(self.__data), "address out of bounds: %s" % address
+    assert index >= 0 and index < len(self.__data), "index out of bounds: %s in memory size %s" % (index, len(self.__data))
     word = self.__data[index]
     return mask.Get_Byte(word, offset)
     
   def Store_Word(self, address, data):
     index = address / 4
     assert len(self.__data) > 0, "Memory is empty!"
-    assert index >= 0 and index < len(self.__data), "address out of bounds: %s" % address
+    assert index >= 0 and index < len(self.__data), "index out of bounds: %s in memory size %s" % (index, len(self.__data))
     assert unsigned(data, 32) >= 0x0 and unsigned(data, 32) <= 0xFFFFFFFF, "data out of bounds: %s" % data
     self.__data[index] = data
 
@@ -120,7 +126,7 @@ class Memory(object):
     index = address / 4
     offset = address % 4
     assert len(self.__data) > 0, "Memory is empty!"
-    assert index >= 0 and index < len(self.__data), "address out of bounds: %s" % address
+    assert index >= 0 and index < len(self.__data), "index out of bounds: %s in memory size %s" % (index, len(self.__data))
     assert unsigned(data, 32) >= 0x0 and unsigned(data, 32) <= 0xFFFFFFFF, "data out of bounds: %s" % data
     assert offset == 0 or offset == 2, "offset out of bounds: %s" % offset
 
@@ -142,7 +148,7 @@ class Memory(object):
     index = address / 4
     offset = address % 4
     assert len(self.__data) > 0, "Memory is empty!"
-    assert index >= 0 and index < len(self.__data), "address out of bounds: %s" % address
+    assert index >= 0 and index < len(self.__data), "index out of bounds: %s in memory size %s" % (index, len(self.__data))
     assert unsigned(data, 32) >= 0x0 and unsigned(data, 32) <= 0xFFFFFFFF, "data out of bounds: %s" % data
     assert offset >= 0 and offset < 4
 
@@ -182,6 +188,8 @@ class Memory(object):
       if Op == ALU_DICT["SH"]:
         Memory.Store_Half(self, address, write_data)
       if Op == ALU_DICT["SW"]:
+        Memory.Store_Word(self, address, write_data)
+      if Op == ALU_DICT["SLT"]:
         Memory.Store_Word(self, address, write_data)
 
     return read_data
@@ -249,6 +257,10 @@ class Register_File(object):
     assert index >= 0 and index < 32
     return self.__register_list[index].Get()
 
+  def Set(self, index, data):
+    assert index >= 0 and index < 32
+    return self.__register_list[index].Set(data)
+
   def Operate(self, read_reg_1, read_reg_2, write_reg, write_data, RegWrite):
     assert read_reg_1 >= 0 and read_reg_1 < 32, "read_reg_1 out of bounds: %d" % read_reg_1
     assert read_reg_2 >= 0 and read_reg_2 < 32, "read_reg_2 out of bounds: %d" % read_reg_2
@@ -257,7 +269,7 @@ class Register_File(object):
     assert RegWrite == 0 or RegWrite == 1, "RegWrite out of bounds: %s" % RegWrite
 
     if RegWrite:
-      self.__register_list[write_reg].Update(write_data)
+      self.__register_list[write_reg].Set(write_data)
 
     read_data_1 = self.__register_list[read_reg_1].Get()
     read_data_2 = self.__register_list[read_reg_2].Get()
@@ -273,59 +285,84 @@ def Sign_Extend(input_val, num_bits):
 
 
 ## Execute and Address Calculation ##
-def ALU_Input_Mux(register, sign_extended, ALUSrc):
-  return MUX(register, sign_extended, ALUSrc)
+def ALU_Input_Mux1(register1, register2, ALUSrc1):
+  return MUX(register1, register2, ALUSrc1)
+
+def ALU_Input_Mux2(register, sign_extended, ALUSrc2):
+  return MUX(register, sign_extended, ALUSrc2)
 
 
 
 def ALU(input1, input2, shamt, ALUControl):
   # TODO: How does this interface with ALU Control? What is the zero Zero line on page 265?
-  if   ALUControl == ALU_DICT["X"]:
-    return 0, 0
+  if   ALUControl == ALU_DICT["J"]:
+    return 0, 1, 0
   elif ALUControl == ALU_DICT["AND"]:
-    return input1 & input2, 0
+    return input1 & input2, 0, 0
   elif ALUControl == ALU_DICT["OR"]:
-    return input1 | input2, 0
+    return input1 | input2, 0, 0
   elif ALUControl == ALU_DICT["ADD"]:
     input1 = twos_comp(input1, 32)
     input2 = twos_comp(input2, 32)
-    return input1 + input2, 0
+    return input1 + input2, 0, 0
   elif ALUControl == ALU_DICT["ADDU"]:
-    return input1 + input2, 0 # TODO
+    return unsigned(input1, 32) + unsigned(input2, 32), 0, 0 # TODO
   elif ALUControl == ALU_DICT["SUB"]:
     input1 = twos_comp(input1, 32)
     input2 = twos_comp(input2, 32)
-    return input1 - input2, 0
+    return input1 - input2, 0, 0
   elif ALUControl == ALU_DICT["SUBU"]:
-    return input1 - input2, 0 # TODO
+    return unsigned(input1, 32) - unsigned(input2, 32), 0, 0 # TODO
   elif ALUControl == ALU_DICT["SLL"]:
-    return input2 << shamt, 0
+    return input2 << shamt, 0, 0
   elif ALUControl == ALU_DICT["SRL"]:
-    return logical_rshift(input2, shamt), 0
+    return logical_rshift(input2, shamt), 0, 0
   elif ALUControl == ALU_DICT["SLT"]:
-    return (input1 < input2), 0 # TODO
+    return ( input1 < input2 ), 0, 1 # TODO
   elif ALUControl == ALU_DICT["SLTU"]:
-    return (input1 < input2), 0 # TODO
+    return ( unsigned(input1, 32) < unsigned(input2, 32) ), 0, 1 # TODO
   elif ALUControl == ALU_DICT["NOT"]:
-    return ~input1, 0 # TODO
+    return ~input1, 0, 0
   elif ALUControl == ALU_DICT["LW"]:
-    return input1 + input2, 0
+    return input1 + input2, 0, 0
   elif ALUControl == ALU_DICT["LH"]:
-    return input1 + input2, 0
+    return input1 + input2, 0, 0
   elif ALUControl == ALU_DICT["LB"]:
-    return input1 + input2, 0
+    return input1 + input2, 0, 0
   elif ALUControl == ALU_DICT["LHU"]:
-    return input1 + input2, 0
+    return input1 + input2, 0, 0
   elif ALUControl == ALU_DICT["LBU"]:
-    return input1 + input2, 0
+    return input1 + input2, 0, 0
+  elif ALUControl == ALU_DICT["LUI"]:
+    return (input2 << 16) | (input1 & 0x0000FFFF), 0, 0
   elif ALUControl == ALU_DICT["SW"]:
-    return input1 + input2, 0
+    return input1 + input2, 0, 0
   elif ALUControl == ALU_DICT["SH"]:
-    return input1 + input2, 0
+    return input1 + input2, 0, 0
   elif ALUControl == ALU_DICT["SB"]:
-    return input1 + input2, 0
+    return input1 + input2, 0, 0
   elif ALUControl == ALU_DICT["NOR"]:
-    return ~(input1 | input2), 0 # TODO
+    return ~(input1 | input2), 0, 0
+  elif ALUControl == ALU_DICT["MOVZ"]:
+    return (input1, 0, 1) if input2 == 0 else (0, 0, 0) # TODO
+  elif ALUControl == ALU_DICT["MOVN"]:
+    return (input1, 0, 1) if input2 != 0 else (0, 0, 0) # TODO
+  elif ALUControl == ALU_DICT["XOR"]:
+    return (input1 ^ input2), 0, 0
+  elif ALUControl == ALU_DICT["BLTZ"]:
+    return (0, 1, 0) if input1 < 0 else (0, 0, 0)
+  elif ALUControl == ALU_DICT["BLEZ"]:
+    return (0, 1, 0) if input1 <= 0 else (0, 0, 0)
+  elif ALUControl == ALU_DICT["BGTZ"]:
+    return (0, 1, 0) if input1 > 0 else (0, 0, 0)
+  elif ALUControl == ALU_DICT["J"]:
+    return 0, 0, 0
+  elif ALUControl == ALU_DICT["JAL"]:
+    return "pc", 0, 1 # TODO
+  elif ALUControl == ALU_DICT["BEQ"]:
+    return (0, 0, 1) if input1 == input2 else (0, 0, 0)
+  elif ALUControl == ALU_DICT["BNE"]:
+    return (0, 0, 1) if input1 != input2 else (0, 0, 0)
   else:
     assert 1 == 2, "Invalid Operation: %s" % ALUControl
 

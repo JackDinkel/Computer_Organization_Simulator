@@ -32,3 +32,6 @@ class Decoder:
     self.funct = mask.Get_Bits_5_0(instr)
     self.i_imm = mask.Get_Bits_15_0(instr)
     self.j_imm = mask.Get_Bits_25_0(instr) # TODO
+
+    if self.op == 0x03: # JAL, set rd to reg31
+      self.rd = 31

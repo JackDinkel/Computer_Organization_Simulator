@@ -143,24 +143,24 @@ def test_ALU():
   shamt = 3
 
   #assert HW.ALU(input1, input2, 0, ALU_DICT["X"])     == (0, 0) # TODO
-  assert HW.ALU(input1, input2, 0, ALU_DICT["AND"])   == (input1 & input2, 0)
-  assert HW.ALU(input1, input2, 0, ALU_DICT["OR"])    == (input1 | input2, 0)
-  assert HW.ALU(input1, input2, 0, ALU_DICT["ADD"])   == (input1 + input2, 0)
-  assert HW.ALU(input1, input2, 0, ALU_DICT["ADDU"])  == (input1 + input2, 0) # TODO
-  assert HW.ALU(input1, input2, 0, ALU_DICT["SUB"])   == (input1 - input2, 0)
-  assert HW.ALU(input1, input2, 0, ALU_DICT["SUBU"])  == (input1 - input2, 0) # TODO
-  assert HW.ALU(input1, input2,shamt,ALU_DICT["SLL"]) == (input2 << shamt, 0)
-  assert HW.ALU(input1, input2,shamt,ALU_DICT["SRL"]) == (input2 >> shamt, 0)
-  assert HW.ALU(input1, input2, 0, ALU_DICT["SLT"])   == (0, 0) # TODO
-  assert HW.ALU(input1, input2, 0, ALU_DICT["SLTU"])  == (0, 0) # TODO
-  assert HW.ALU(input1, input2, 0, ALU_DICT["NOT"])   == (~input1, 0)
-  assert HW.ALU(input1, input2, 0, ALU_DICT["LW"])  == (7, 0)
-  assert HW.ALU(input1, input2, 0, ALU_DICT["LBU"])  == (7, 0)
-  assert HW.ALU(input1, input2, 0, ALU_DICT["LHU"])  == (7, 0)
-  assert HW.ALU(input1, input2, 0, ALU_DICT["SW"]) == (7, 0)
-  assert HW.ALU(input1, input2, 0, ALU_DICT["SH"]) == (7, 0)
-  assert HW.ALU(input1, input2, 0, ALU_DICT["SB"]) == (7, 0)
-  assert HW.ALU(input1, input2, 0, ALU_DICT["NOR"])   == (~(input1 | input2), 0) # TODO
+  assert HW.ALU(input1, input2, 0, ALU_DICT["AND"])   == (input1 & input2, 0, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["OR"])    == (input1 | input2, 0, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["ADD"])   == (input1 + input2, 0, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["ADDU"])  == (input1 + input2, 0, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["SUB"])   == (input1 - input2, 0, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["SUBU"])  == (input1 - input2, 0, 0)
+  assert HW.ALU(input1, input2,shamt,ALU_DICT["SLL"]) == (input2 << shamt, 0, 0)
+  assert HW.ALU(input1, input2,shamt,ALU_DICT["SRL"]) == (input2 >> shamt, 0, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["SLT"])   == (0, 0, 1) # TODO
+  assert HW.ALU(input1, input2, 0, ALU_DICT["SLTU"])  == (0, 0, 1) # TODO
+  assert HW.ALU(input1, input2, 0, ALU_DICT["NOT"])   == (~input1, 0, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["LW"])    == (7, 0, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["LBU"])   == (7, 0, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["LHU"])   == (7, 0, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["SW"])    == (7, 0, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["SH"])    == (7, 0, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["SB"])    == (7, 0, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["NOR"])   == (~(input1 | input2), 0, 0) # TODO
 
 
 
@@ -277,3 +277,62 @@ def test_loadstore():
   simulator.cycle()
   assert simulator.Register_File.Get(t3) == 0x0012
 
+
+def test_lui():
+  instructions = [
+    0x214A0005, # addi t2 t2 0x5
+    0x3C0A00F2 # lui t2 0xf2
+  ]
+  
+  t2 = REG_DICT["t2"]
+
+  simulator = single_cycle.Single_Cycle()
+  simulator.memory.__init__(32)
+  simulator.Register_File.__init__()
+  for index in xrange(len(instructions)):
+    simulator.memory.Store_Word(4*index, instructions[index])
+
+  simulator.cycle()
+  assert simulator.Register_File.Get(t2) == 0x00000005
+
+  simulator.cycle()
+  assert simulator.Register_File.Get(t2) == 0x00f20005
+
+#def test_jump():
+#  instructions = [
+#    0x214A0005, # addi t2 t2 0x5
+#    0x01400008, # jr t2
+#    # jal
+#    0
+#    0
+#    0
+#    0x08000002 # j 2
+#  ]
+#
+#  simulator = single_cycle.Single_Cycle()
+#  simulator.memory.__init__(32)
+#  simulator.Register_File.__init__()
+#  for index in xrange(len(instructions)):
+#    simulator.memory.Store_Word(4*index, instructions[index])
+#
+#  assert simulator.PC.Get() == 0
+#
+#  simulator.cycle()
+#  assert simulator.PC.Get() == 1
+#
+#  simulator.cycle()
+#  assert simulator.PC.Get() == 5
+#
+#  simulator.cycle()
+#  assert simulator.PC.Get() == 2
+#
+#  simulator.cycle()
+#  assert simulator.PC.Get() == 4
+#  assert simulator.R.Get() == 4
+#
+#
+#  # BEQ
+#  # BNE
+#  # BGTZ
+#  # BLTZ
+#  # BLEZ

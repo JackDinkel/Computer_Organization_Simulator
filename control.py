@@ -1,6 +1,6 @@
 
 ALU_DICT = {
-  "X"     : 0,
+  "J"     : 0,
   "AND"   : 1,
   "OR"    : 2,
   "ADD"   : 3,
@@ -24,6 +24,14 @@ ALU_DICT = {
   "MOVZ"  : 21,
   "MOVN"  : 22,
   "XOR"   : 23,
+  "LUI"   : 24,
+  "BLTZ"  : 25,
+  "BLEZ"  : 26,
+  "BGTZ"  : 27,
+  "J"     : 28,
+  "JAL"   : 29,
+  "BEQ"   : 30,
+  "BNE"   : 31
 }
 
 class Controller(object):
@@ -34,13 +42,14 @@ class Controller(object):
   MemWrite = 0 # Set to 1 to read from Memory
   MemToReg = 0 # Control to Write_Back_MUX, 0 to use ALU result, 1 to use Memory
   ALUOp    = 0 # Control to ALU, which operation to perform
-  ALUSrc   = 0 # Control to ALU_Input_MUX, 0 to use Register, 1 to use immediate
+  ALUSrc1  = 0 # Control to ALU_Input_MUX, 0 to use Register, 1 to use immediate
+  ALUSrc2  = 0 # Control to ALU_Input_MUX, 0 to use Register, 1 to use immediate
   RegWrite = 0 # Set to 1 to write a new value to a register
 
   __funct_dic = {
     0x00 : ALU_DICT["SLL"],  # SLL
     0x02 : ALU_DICT["SRL"],  # SRL
-    0x08 : ALU_DICT["X"],    # JR
+    0x08 : ALU_DICT["J"],    # JR
     0x0A : ALU_DICT["MOVZ"], # MOVZ
     0x0B : ALU_DICT["MOVN"], # MOVN
     0x20 : ALU_DICT["ADD"],  # ADD
@@ -63,7 +72,8 @@ class Controller(object):
     print "MemWrite:", self.MemWrite
     print "MemToReg:", self.MemToReg
     print "ALUOp:", self.ALUOp
-    print "ALUSrc:", self.ALUSrc
+    print "ALUSrc1:", self.ALUSrc1
+    print "ALUSrc2:", self.ALUSrc2
     print "RegWrite:", self.RegWrite
 
   def update(self, op, funct):
@@ -75,12 +85,22 @@ class Controller(object):
       self.MemRead  = 0
       self.MemToReg = 0
       self.MemWrite = 0
-      self.ALUSrc   = 0
+      self.ALUSrc1  = 0
+      self.ALUSrc2  = 0
       self.RegWrite = 1
       self.ALUOp    = self.__funct_dic[funct]
 
-    elif op == 0x01: # BLTZ TODO
-      pass
+    elif op == 0x01: # BLTZ
+      self.RegDst   = 0
+      self.Branch   = 0
+      self.Jump     = 1
+      self.MemRead  = 0
+      self.MemToReg = 0
+      self.MemWrite = 0
+      self.ALUSrc1  = 0
+      self.ALUSrc2  = 1
+      self.RegWrite = 0
+      self.ALUOp    = ALU_DICT["BLTZ"]
 
     elif op == 0x02: # J
       self.RegDst   = 0
@@ -89,9 +109,10 @@ class Controller(object):
       self.MemRead  = 0
       self.MemToReg = 0
       self.MemWrite = 0
-      self.ALUSrc   = 1
+      self.ALUSrc1  = 0
+      self.ALUSrc2  = 1
       self.RegWrite = 0
-      self.ALUOp    = ALU_DICT["X"]
+      self.ALUOp    = ALU_DICT["J"]
 
     elif op == 0x03: # JAL
       self.RegDst   = 0
@@ -100,10 +121,10 @@ class Controller(object):
       self.MemRead  = 0
       self.MemToReg = 0
       self.MemWrite = 0
-      self.ALUSrc   = 1
-      self.RegWrite = 0
-      self.ALUOp    = ALU_DICT["X"]
-      # TODO: Need a way to set a register
+      self.ALUSrc1  = 0
+      self.ALUSrc2  = 1
+      self.RegWrite = 1
+      self.ALUOp    = ALU_DICT["JAL"]
 
     elif op == 0x04: # BEQ
       self.RegDst   = 0
@@ -112,7 +133,8 @@ class Controller(object):
       self.MemRead  = 0
       self.MemToReg = 0
       self.MemWrite = 0
-      self.ALUSrc   = 1
+      self.ALUSrc1  = 0
+      self.ALUSrc2  = 1
       self.RegWrite = 0
       self.ALUOp    = ALU_DICT["BEQ"]
 
@@ -123,14 +145,35 @@ class Controller(object):
       self.MemRead  = 0
       self.MemToReg = 0
       self.MemWrite = 0
-      self.ALUSrc   = 1
+      self.ALUSrc1  = 0
+      self.ALUSrc2  = 1
       self.RegWrite = 0
       self.ALUOp    = ALU_DICT["BNE"]
 
-    elif op == 0x06: # BLTZ TODO
+    elif op == 0x06: # BLEZ
+      self.RegDst   = 0
+      self.Branch   = 1
+      self.Jump     = 0
+      self.MemRead  = 0
+      self.MemToReg = 0
+      self.MemWrite = 0
+      self.ALUSrc1  = 0
+      self.ALUSrc2  = 1
+      self.RegWrite = 0
+      self.ALUOp    = ALU_DICT["BLEZ"]
       pass
 
-    elif op == 0x07: # BGTZ TODO
+    elif op == 0x07: # BGTZ
+      self.RegDst   = 0
+      self.Branch   = 1
+      self.Jump     = 0
+      self.MemRead  = 0
+      self.MemToReg = 0
+      self.MemWrite = 0
+      self.ALUSrc1  = 0
+      self.ALUSrc2  = 1
+      self.RegWrite = 0
+      self.ALUOp    = ALU_DICT["BGTZ"]
       pass
 
     elif op == 0x08: # ADDI
@@ -140,7 +183,8 @@ class Controller(object):
       self.MemRead  = 0
       self.MemToReg = 0
       self.MemWrite = 0
-      self.ALUSrc   = 1
+      self.ALUSrc1  = 0
+      self.ALUSrc2  = 1
       self.RegWrite = 1
       self.ALUOp    = ALU_DICT["ADD"]
 
@@ -151,7 +195,8 @@ class Controller(object):
       self.MemRead  = 0
       self.MemToReg = 0
       self.MemWrite = 0
-      self.ALUSrc   = 1
+      self.ALUSrc1  = 0
+      self.ALUSrc2  = 1
       self.RegWrite = 1
       self.ALUOp    = ALU_DICT["ADDU"]
 
@@ -162,7 +207,8 @@ class Controller(object):
       self.MemRead  = 0
       self.MemToReg = 0
       self.MemWrite = 0
-      self.ALUSrc   = 1
+      self.ALUSrc1  = 0
+      self.ALUSrc2  = 1
       self.RegWrite = 1
       self.ALUOp    = ALU_DICT["SLT"]
 
@@ -173,7 +219,8 @@ class Controller(object):
       self.MemRead  = 0
       self.MemToReg = 0
       self.MemWrite = 0
-      self.ALUSrc   = 1
+      self.ALUSrc1  = 0
+      self.ALUSrc2  = 1
       self.RegWrite = 1
       self.ALUOp    = ALU_DICT["SLTU"]
 
@@ -184,7 +231,8 @@ class Controller(object):
       self.MemRead  = 0
       self.MemToReg = 0
       self.MemWrite = 0
-      self.ALUSrc   = 1
+      self.ALUSrc1  = 0
+      self.ALUSrc2  = 1
       self.RegWrite = 1
       self.ALUOp    = ALU_DICT["AND"]
 
@@ -195,32 +243,61 @@ class Controller(object):
       self.MemRead  = 0
       self.MemToReg = 0
       self.MemWrite = 0
-      self.ALUSrc   = 1
+      self.ALUSrc1  = 0
+      self.ALUSrc2  = 1
       self.RegWrite = 1
       self.ALUOp    = ALU_DICT["OR"]
 
-    elif op == 0x0E: # XORI TODO
+    elif op == 0x0E: # XORI
+      self.RegDst   = 0
+      self.Branch   = 0
+      self.Jump     = 0
+      self.MemRead  = 0
+      self.MemToReg = 0
+      self.MemWrite = 0
+      self.ALUSrc1  = 0
+      self.ALUSrc2  = 1
+      self.RegWrite = 1
+      self.ALUOp    = ALU_DICT["XOR"]
+
+    elif op == 0x0F: # LUI
+      self.RegDst   = 0
+      self.Branch   = 0
+      self.Jump     = 0
+      self.MemRead  = 0
+      self.MemToReg = 0
+      self.MemWrite = 0
+      self.ALUSrc1  = 1
+      self.ALUSrc2  = 1
+      self.RegWrite = 1
+      self.ALUOp    = ALU_DICT["LUI"]
+
+    elif op == 0x1F: # SEP TODO
       pass
 
-    elif op == 0x0F: # LUI TODO
+    elif op == 0x20: # LB
       self.RegDst   = 0
       self.Branch   = 0
       self.Jump     = 0
       self.MemRead  = 1
       self.MemToReg = 1
       self.MemWrite = 0
-      self.ALUSrc   = 1
+      self.ALUSrc1  = 0
+      self.ALUSrc2  = 1
       self.RegWrite = 1
-      self.ALUOp    = ALU_DICT["LOAD"]
+      self.ALUOp    = ALU_DICT["LB"]
 
-    elif op == 0x1F: # SEP TODO
-      pass
-
-    elif op == 0x20: # LB TODO
-      pass
-
-    elif op == 0x21: # LH TODO
-      pass
+    elif op == 0x21: # LH
+      self.RegDst   = 0
+      self.Branch   = 0
+      self.Jump     = 0
+      self.MemRead  = 1
+      self.MemToReg = 1
+      self.MemWrite = 0
+      self.ALUSrc1  = 0
+      self.ALUSrc2  = 1
+      self.RegWrite = 1
+      self.ALUOp    = ALU_DICT["LH"]
 
     elif op == 0x23: # LW
       self.RegDst   = 0
@@ -229,7 +306,8 @@ class Controller(object):
       self.MemRead  = 1
       self.MemToReg = 1
       self.MemWrite = 0
-      self.ALUSrc   = 1
+      self.ALUSrc1  = 0
+      self.ALUSrc2  = 1
       self.RegWrite = 1
       self.ALUOp    = ALU_DICT["LW"]
 
@@ -240,7 +318,8 @@ class Controller(object):
       self.MemRead  = 1
       self.MemToReg = 1
       self.MemWrite = 0
-      self.ALUSrc   = 1
+      self.ALUSrc1  = 0
+      self.ALUSrc2  = 1
       self.RegWrite = 1
       self.ALUOp    = ALU_DICT["LBU"]
 
@@ -251,7 +330,8 @@ class Controller(object):
       self.MemRead  = 1
       self.MemToReg = 1
       self.MemWrite = 0
-      self.ALUSrc   = 1
+      self.ALUSrc1  = 0
+      self.ALUSrc2  = 1
       self.RegWrite = 1
       self.ALUOp    = ALU_DICT["LHU"]
 
@@ -262,7 +342,8 @@ class Controller(object):
       self.MemRead  = 0
       self.MemToReg = 0
       self.MemWrite = 1
-      self.ALUSrc   = 1
+      self.ALUSrc1  = 0
+      self.ALUSrc2  = 1
       self.RegWrite = 0
       self.ALUOp    = ALU_DICT["SB"]
 
@@ -273,7 +354,8 @@ class Controller(object):
       self.MemRead  = 0
       self.MemToReg = 0
       self.MemWrite = 1
-      self.ALUSrc   = 1
+      self.ALUSrc1  = 0
+      self.ALUSrc2  = 1
       self.RegWrite = 0
       self.ALUOp    = ALU_DICT["SH"]
 
@@ -284,7 +366,8 @@ class Controller(object):
       self.MemRead  = 0
       self.MemToReg = 0
       self.MemWrite = 1
-      self.ALUSrc   = 1
+      self.ALUSrc1  = 0
+      self.ALUSrc2  = 1
       self.RegWrite = 0
       self.ALUOp    = ALU_DICT["SW"]
 
