@@ -63,3 +63,12 @@ def Get_Half(number, offset):
   assert number >= 0x0 and number <= 0xFFFFFFFF, "input out of range: %s" % number
   assert offset == 0 or offset == 2, "offset out of range: %s" % offset
   return Get_Bits(number, offset, 16)
+
+def Generate_Right_Mask(num_bits):
+  assert num_bits >= 0 and num_bits < 32, "num_bits out of range: %s" % num_bits
+  if num_bits == 0:
+    return 0
+  mask = 1
+  for _ in xrange(num_bits-1):
+    mask = mask << 1 | mask
+  return mask
