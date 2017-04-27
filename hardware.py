@@ -13,7 +13,7 @@
 '''
 
 from control import ALU_DICT
-from opcode import OP_DICT
+from opcode import *
 from globals import *
 
 def twos_comp(val, num_bits):

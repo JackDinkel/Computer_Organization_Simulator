@@ -29,6 +29,7 @@ class IFID:
 class IDEX:
 	# ID side
 	instruction_in = decode.Instruction()
+	destinationReg_in = 0
 	signExtendImm_in = 0
 	pc_in = 0
 	readData1_in = 0
@@ -40,6 +41,7 @@ class IDEX:
 
 	# EX side
 	instruction_out = decode.Instruction()
+	destinationReg_out = 0
 	signExtendImm_out = 0
 	pc_out = 0
 	readData1_out = 0
@@ -49,8 +51,9 @@ class IDEX:
 	memControl_out = MEMControl()
 	exControl_out  = EXControl()
 
-	def set(self, i_in, sEx_in, p_in, rd1_in, rd2_in, b_in, wb_in, mem_in, ex_in):
+	def set(self, i_in, d_in, sEx_in, p_in, rd1_in, rd2_in, b_in, wb_in, mem_in, ex_in):
 		self.instruction_in = i_in
+		self.destinationReg_in = d_in
 		self.signExtendImm_in = sEx_in
 		self.pc_in = p_in
 		self.readData1_in = rd1_in
@@ -62,6 +65,7 @@ class IDEX:
 
 	def update(self):
 		self.instruction_out = self.instruction_in
+		self.destinationReg_out = self.destinationReg_in
 		self.signExtendImm_out = self.signExtendImm_in
 		self.pc_out = self.pc_in
 		self.readData1_out = self.readData1_in

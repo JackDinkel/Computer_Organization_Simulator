@@ -1,4 +1,3 @@
-
 OP_DICT = {
   #"NOP"   :     
   #"SLL"   : 0x00
