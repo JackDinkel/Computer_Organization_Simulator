@@ -30,15 +30,15 @@ def pipelineMain():
 	IFID.pc_out = 0x00000000 
 
 	# initialize some code
-	Instruction_Memory.Store_Word(0,  0x20090002) # addi t1 zero 0x0002
-	Instruction_Memory.Store_Word(4,  0x200a0003) # addi t2 zero 0x0003
-	Instruction_Memory.Store_Word(8,  0x200b0004) # addi t3 zero 0x0004
-	Instruction_Memory.Store_Word(12, 0x200c0005) # addi t4 zero 0x0005
-	Instruction_Memory.Store_Word(16, 0x8C0D0030) # lw t5, 0x30(zero)
-	Instruction_Memory.Store_Word(20, 0x018D6020) # add t4 t4 t5
-	Instruction_Memory.Store_Word(24, 0x200e0007) # addi t6 zero 0x0007
+	Instruction_Memory.Store_Word(0,  0x20080009) # addi t0 zero 0x0009
+	Instruction_Memory.Store_Word(4,  0x20090009) # addi t1 zero 0x0009
+	Instruction_Memory.Store_Word(8,  0x00000000) # nop
+	Instruction_Memory.Store_Word(12, 0x11090004) # beq t0 t1 0x0004
+	Instruction_Memory.Store_Word(16, 0x00000000) # nop
+	Instruction_Memory.Store_Word(20, 0x00000000) # nop
+	Instruction_Memory.Store_Word(24, 0x00000000) # nop
 	Instruction_Memory.Store_Word(28, 0x00000000) # nop
-	Instruction_Memory.Store_Word(32, 0x00000000) # nop
+	Instruction_Memory.Store_Word(32, 0x200a0009) # addi t2 zero 0x0009
 	Instruction_Memory.Store_Word(36, 0x00000000) # nop
 	Instruction_Memory.Store_Word(40, 0x00000000) # nop
 	Instruction_Memory.Store_Word(44, 0x00000000) # nop
@@ -48,10 +48,9 @@ def pipelineMain():
 	Instruction_Memory.Store_Word(60, 0x00000000) # nop
 	Instruction_Memory.Store_Word(64, 0x00000000) # nop
 	Instruction_Memory.Store_Word(68, 0x00000000) # nop
-	Data_Memory.Store_Word(48, 0x00000005)
 
 	# start pipeline
-	for i in range(1,20):
+	for i in range(1,15):
 		pipelineLoop()
 
 	print "\nt0: %d" % Register_File.Get(REG_DICT["t0"])
@@ -76,10 +75,12 @@ def pipelineLoop():
 def IF():
 	instruction_temp = Instruction()
 
-	pc = HW.PC_Input_Mux(IFID.pc_out, EXMEM.branchAddress_out, EXMEM.jumpAddress_out, 
+	pc = HW.PC_Input_Mux(IFID.pc_out, IDEX.branchAddress_out, EXMEM.jumpAddress_out, 
 		PCSrc, EXMEM.memControl_out.Jump)
 
 	instruction_temp.word = Instruction_Memory.Load_Word(pc)
+
+	print "%d, %d" % (pc, instruction_temp.word)
 
 	IFID.set(instruction_temp, pc+4)
 
@@ -94,6 +95,48 @@ def ID():
 	updateControl(IFID.instruction_out.op, IFID.instruction_out.funct, 
 		excTemp, memcTemp, wbcTemp)
 
+	# sign extend immediate
+	sign_extend_imm = HW.Sign_Extend(IFID.instruction_out.i_imm, 16)
+
+	#branch forwarding
+	if (EXMEM.wbControl_out.RegWrite and (EXMEM.destinationReg_out == IFID.instruction_out.rs)):
+		rs_value = EXMEM.ALUResult_out
+		tt = 1
+	elif (MEMWB.wbControl_out.RegWrite and (MEMWB.destinationReg_out == IFID.instruction_out.rs)):
+		rs_value = WriteData
+		tt = 2
+	else:
+		rs_value = Register_File.Get(IFID.instruction_out.rs)
+		tt = 3
+
+	if (EXMEM.wbControl_out.RegWrite and (EXMEM.destinationReg_out == IFID.instruction_out.rt)):
+		rt_value = EXMEM.ALUResult_out
+		ttt = 1
+	elif (MEMWB.wbControl_out.RegWrite and (MEMWB.destinationReg_out == IFID.instruction_out.rt)):
+		rt_value = WriteData
+		ttt = 2
+	else:
+		rt_value = Register_File.Get(IFID.instruction_out.rt)
+		ttt = 3
+
+
+	# branch hazards
+	# if (((EXMEM.memControl_out.MemRead) and 
+	# 	((EXMEM.destinationReg_out == IFID.instruction_out.rt) 
+	# 		or (EXMEM.destinationReg_out == IFID.instruction_out.rs))) or 
+
+	# (((IDEX.memControl_out.MemRead) &((IDEX.WbReg== IF/ID.Reg.Rt) |(ID/EX.WbReg== IF/ID.Reg.Rs)))):
+
+
+	# branch detection
+	if (((IFID.instruction_out.op == OP_DICT["BEQ"]) and (rs_value == rt_value)) 
+		or ((IFID.instruction_out.op == OP_DICT["BNE"]) and (rs_value != rt_value))):
+		IFID.flush()
+		global PCSrc
+		PCSrc = 1
+	else:
+		PCSrc = 0
+
 	# hazard detection
 	data_hazard = HW.Hazard_Detection_Unit(IDEX.memControl_out.MemRead, IDEX.instruction_out.rt, 
 		IFID.instruction_out.rs, IFID.instruction_out.rt)
@@ -101,14 +144,17 @@ def ID():
 	if data_hazard == 1:
 		IFID.stall = 1
 
+	# calculate branch address
+	branch_addr_temp = HW.Shift_Left_2(sign_extend_imm) + IFID.pc_out
+
 	# Register file operations
 	read_data_1, read_data_2 = Register_File.Operate(IFID.instruction_out.rs, 
 		IFID.instruction_out.rt, MEMWB.destinationReg_out, WriteData, 
 		MEMWB.wbControl_out.RegWrite)
 
 	# inputs to IDEX register
-	IDEX.set(IFID.instruction_out, HW.Sign_Extend(IFID.instruction_out.i_imm, 16), 
-		IFID.pc_out, read_data_1, read_data_2, wbcTemp, memcTemp, excTemp)
+	IDEX.set(IFID.instruction_out, sign_extend_imm, IFID.pc_out, read_data_1, 
+		read_data_2, branch_addr_temp, wbcTemp, memcTemp, excTemp)
 
 def EX():
 	# determine write reg address
@@ -128,21 +174,15 @@ def EX():
 	alu_res_temp = HW.ALU(alu_input_1, alu_mux_temp, IDEX.instruction_out.shamt, 
 		IDEX.exControl_out.ALUOp)
 
-	# calculate branch address
-	branch_addr_temp = HW.Shift_Left_2(IDEX.signExtendImm_out) + IDEX.pc_out
-
 	# calculate jump address
 	jump_addr_temp = HW.Calculate_Jump_Addr(IDEX.instruction_out.j_imm, IDEX.pc_out)
 
 	# inputs to EXMEM register
 	EXMEM.set(IDEX.instruction_out, dest_reg_temp, IDEX.readData2_out, alu_res_temp, 
-		(alu_res_temp == 0), branch_addr_temp, jump_addr_temp, IDEX.wbControl_out, 
+		(alu_res_temp == 0), jump_addr_temp, IDEX.wbControl_out, 
 		IDEX.memControl_out)
 
 def MEM():
-	global PCSrc
-	PCSrc = 1 if (EXMEM.memControl_out.Branch == 1 and EXMEM.zero_out) else 0 # Python ternary operator
-
 	# operate on data memory
 	read_data_temp = Data_Memory.Operate(EXMEM.ALUResult_out, EXMEM.readData2_out, 
 		EXMEM.memControl_out.MemRead, EXMEM.memControl_out.MemWrite, 

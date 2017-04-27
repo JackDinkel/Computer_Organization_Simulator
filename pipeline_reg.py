@@ -16,6 +16,9 @@ class IFID:
 		self.instruction_in = i_in
 		self.pc_in = p_in
 
+	def flush(self):
+		self.instruction_in.word = 0
+
 	def update(self):
 		if self.stall == 0:
 			self.instruction_out = self.instruction_in
@@ -30,6 +33,7 @@ class IDEX:
 	pc_in = 0
 	readData1_in = 0
 	readData2_in = 0
+	branchAddress_in = 0
 	wbControl_in  = WBControl()
 	memControl_in = MEMControl()
 	exControl_in  = EXControl()
@@ -40,16 +44,18 @@ class IDEX:
 	pc_out = 0
 	readData1_out = 0
 	readData2_out = 0
+	branchAddress_out = 0
 	wbControl_out  = WBControl()
 	memControl_out = MEMControl()
 	exControl_out  = EXControl()
 
-	def set(self, i_in, sEx_in, p_in, rd1_in, rd2_in, wb_in, mem_in, ex_in):
+	def set(self, i_in, sEx_in, p_in, rd1_in, rd2_in, b_in, wb_in, mem_in, ex_in):
 		self.instruction_in = i_in
 		self.signExtendImm_in = sEx_in
 		self.pc_in = p_in
 		self.readData1_in = rd1_in
 		self.readData2_in = rd2_in
+		self.branchAddress_in = b_in
 		self.wbControl_in = wb_in
 		self.memControl_in = mem_in
 		self.exControl_in = ex_in
@@ -60,6 +66,7 @@ class IDEX:
 		self.pc_out = self.pc_in
 		self.readData1_out = self.readData1_in
 		self.readData2_out = self.readData2_in
+		self.branchAddress_out = self.branchAddress_in
 		self.wbControl_out = self.wbControl_in
 		self.memControl_out = self.memControl_in
 		self.exControl_out = self.exControl_in
@@ -71,7 +78,6 @@ class EXMEM:
 	readData2_in = 0
 	ALUResult_in = 0
 	zero_in = False
-	branchAddress_in = 0
 	jumpAddress_in = 0
 	wbControl_in  = WBControl()
 	memControl_in = MEMControl()
@@ -82,18 +88,16 @@ class EXMEM:
 	readData2_out = 0
 	ALUResult_out = 0
 	zero_out = False
-	branchAddress_out = 0
 	jumpAddress_out = 0
 	wbControl_out  = WBControl()
 	memControl_out = MEMControl()
 
-	def set(self, i_in, destReg_in, rd2_in, aluR_in, z_in, bAdd_in, jAdd_in, wbc_in, memc_in):
+	def set(self, i_in, destReg_in, rd2_in, aluR_in, z_in, jAdd_in, wbc_in, memc_in):
 		self.instruction_in = i_in
 		self.destinationReg_in = destReg_in
 		self.readData2_in = rd2_in
 		self.ALUResult_in = aluR_in
 		self.zero_in = z_in
-		self.branchAddress_in = bAdd_in
 		self.jumpAddress_in = jAdd_in
 		self.wbControl_in  = wbc_in
 		self.memControl_in = memc_in
@@ -104,7 +108,6 @@ class EXMEM:
 		self.readData2_out = self.readData2_in
 		self.ALUResult_out = self.ALUResult_in
 		self.zero_out = self.zero_in
-		self.branchAddress_out = self.branchAddress_in
 		self.jumpAddress_out = self.jumpAddress_in
 		self.wbControl_out  = self.wbControl_in
 		self.memControl_out = self.memControl_in
