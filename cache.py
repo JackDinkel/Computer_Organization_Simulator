@@ -50,11 +50,12 @@ Each block is a list of three things, valid, tag, data
 
 import mask
 from globals import *
+import hardware as HW
 from math import log, ceil
 
 class Direct_Cache(object):
 
-  def __init__(self, blocks, words, writePolicy):
+  def __init__(self, blocks, words, writePolicy, mem_contents, mem_size):
     assert writePolicy == "through" or writePolicy == "back", "invalid write policy: %s" % writePolicy
 
     # Set attributes
@@ -63,12 +64,25 @@ class Direct_Cache(object):
     self.write_policy = writePolicy
 
     # Build the empty cache
-    self.__cache = [ 0, 0, []*self.num_words ] * self.num_blocks
+    self.__cache = [ [0, 0, [0 for _ in range(self.num_words)] ] for _ in xrange(self.num_blocks) ]
+
+    # Initialize memory
+    self.memory = HW.Memory(mem_contents, mem_size)
 
 
-  def Update(self, blocks, words):
+
+  def Update(self, blocks, words, writePolicy, mem_contents, mem_size):
     # Call to change the rebuild a new empty cache
-    self.__init__(blocks, words)
+    self.__init__(blocks, words, writePolicy, mem_contents, mem_size)
+
+
+  def Direct_Update(self, index, update):
+    # For testing only
+    self.__cache[index] = update
+
+
+  def display(self):
+    print self.__cache
 
 
   def Address_Decode(self, address):
@@ -100,7 +114,7 @@ class Direct_Cache(object):
     num_index_bits = int(ceil(log(self.num_blocks, 2)))
     num_tag_bits = 32 - num_index_bits - num_word_offset_bits - num_byte_offset_bits
 
-    address = (tag << 32 - num_tag_bits) | (index << (num_word_offset_bits + num_byte_offset_bits)) | 
+    address = (tag << 32 - num_tag_bits) | (index << (num_word_offset_bits + num_byte_offset_bits)) | \
               (word_offset << num_byte_offset_bits) | byte_offset
 
     assert address >= 0 and address <= 0xFFFFFFFF, "Calculated address out of bounds: %s" % address
@@ -117,22 +131,31 @@ class Direct_Cache(object):
     return self.__cache[index][1] == tag
 
 
-  def Load_From_Memory(self, address):
-    # Load data to cache from memory
-    # TODO: How many words do I need to load?
+  def Load_Block_From_Memory(self, address):
+    # Load the entire block to cache from memory
     tag, index, word_offset = self.Address_Decode(address)
-    word = self.__memory.Load_Word(address)
-    self.__cache[index][2][word_offset] = word
+    block = []
+    for word in xrange(self.num_words):
+      block.append(self.memory.Load_Word((address) + 4*word))
+    assert len(block) == self.num_words
+    self.__cache[index][2] = block
     self.__cache[index][1] = tag
-    self.__cache[index][0] = valid
+    self.__cache[index][0] = 1
+
+    # For testing...
+    return block
 
 
-  def Store_To_Memory(self, address, data):
-    # Store data to memory from cache
-    # TODO: How many words do I need to store?
+  def Store_Block_To_Memory(self, address):
+    # Store the entire block to memory from cache
     tag, index, word_offset = self.Address_Decode(address)
-    word = self.__cache[index][2][word_offset]
-    self.__memory.Store_Word(address, data)
+    block = self.__cache[index][2]
+    assert len(block) == self.num_words
+    for word in xrange(self.num_words):
+      self.memory.Store_Word((address / 4) + word, block[word])
+
+    # For testing...
+    return block
     
     
   def Store(address, data):
@@ -141,26 +164,26 @@ class Direct_Cache(object):
 
     # Cache miss
     if not Validate(index):
-      self.Load_From_Memory(tag, index, word_offset)
+      self.Load_Block_From_Memory(address)
       return "miss" # TODO: Probably also need to return number of cycles penalized
 
     # Need to evict
     if not Matching_Tags(index, tag):
       if self.Write_Policy == "back":
         # TODO: Should we do this always, or only when the block is dirty?
+        # Pretty sure we only are supposed to do this when the block is dirty, but it doesn't hurt us to do it always
         evictee_tag = self.__cache[index][1]
-        evictee_address = self.Encode_Address(
-        # TODO: How many words/bytes to write back?
-        self.Store_To_Memory(self, tag, index, word_offset, 0)
-      # TODO: How many words do I load in?
-      self.Load_From_Memory(tag, index, word_offset)
-      # TODO: Do I return a fail status, or continue with the write?
+        evictee_address = self.Address_Encode(tag, index, word_offset, 0)
+        evictee_data = self.__cache[index][2]
+        self.Store_Block_To_Memory(evictee_address)
 
+      self.Load_Block_From_Memory(tag, address)
+      # TODO: Do I return a fail status, or continue with the write?
 
     # Cache hit, write
     self.__cache[index][2][word_offset] = data
     if self.Write_Policy == "through":
-      self.Store_To_Memory(address, data) # TODO: Do I need to use a buffer or something?
+      self.Store_Block_To_Memory(address) # TODO: Do I need to use a buffer or something?
 
 
   def Load(address):
@@ -169,7 +192,7 @@ class Direct_Cache(object):
 
     # Cache miss
     if not Validate(index):
-      self.Load_From_Memory(tag, index, word_offset)
+      self.Load_Block_From_Memory(address)
       return "miss" # TODO: Probably also need to return number of cycles penalized
 
     # Cache hit, fetch word
