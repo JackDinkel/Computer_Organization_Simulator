@@ -15,14 +15,14 @@ def pipelineMain():
 	p.IFID.pc_out = 0x00000000 
 
 	# initialize some code
-	p.Memory.Store_Word(0,  0x20080009) # addi t0 zero 0x0009
-	p.Memory.Store_Word(4,  0x8C0D0050) # lw t5, 0x50(zero)
-	p.Memory.Store_Word(8,  0x110D0004) # beq t0 t5 0x0004
-	p.Memory.Store_Word(12, 0x200b0009) # addi t3 zero 0x0009
-	p.Memory.Store_Word(16, 0x00000000) # nop
-	p.Memory.Store_Word(20, 0x00000000) # nop
+	p.Memory.Store_Word(0,  0x2008000F) # addi t0 zero 0xF
+	p.Memory.Store_Word(4,  0x20090005) # addi t1 zero 0x5
+	p.Memory.Store_Word(8,  0x312A0001) # andi t2 t1 0x1 <-- bug due to no forwarding
+	p.Memory.Store_Word(12, 0x392B0003) # xori t3 t1 0x3
+	p.Memory.Store_Word(16, 0x350C0003) # ori  t4 t0 0x3
+	p.Memory.Store_Word(20, 0x292D000F) # slti t5 t1 0xF
 	p.Memory.Store_Word(24, 0x00000000) # nop
-	p.Memory.Store_Word(28, 0x200a0009) # addi t2 zero 0x0009
+	p.Memory.Store_Word(28, 0x00000000) # nop
 	p.Memory.Store_Word(32, 0x00000000) # nop
 	p.Memory.Store_Word(36, 0x00000000) # nop
 	p.Memory.Store_Word(40, 0x00000000) # nop
@@ -33,7 +33,6 @@ def pipelineMain():
 	p.Memory.Store_Word(60, 0x00000000) # nop
 	p.Memory.Store_Word(64, 0x00000000) # nop
 	p.Memory.Store_Word(68, 0x00000000) # nop
-	p.Memory.Store_Word(80, 0x00000009) # data
 
 	# start pipeline
 	for i in range(1,20):
@@ -49,6 +48,7 @@ def pipelineMain():
 	print "t7: %d" % p.Register_File.Get(REG_DICT["t7"])
 	print "t8: %d" % p.Register_File.Get(REG_DICT["t8"])
 	print "t9: %d" % p.Register_File.Get(REG_DICT["t9"])
+	print "ra: %d" % p.Register_File.Get(REG_DICT["ra"])
 
 class Pipeline(object):
 	# pipeline registers
@@ -158,6 +158,8 @@ class Pipeline(object):
 			(self.IFID.instruction_out.op == OP_DICT["JAL"])):
 			self.IFID.flush()
 			self.PCSrcJ = 1
+			if self.IFID.instruction_out.op == OP_DICT["JAL"]:
+				self.Register_File.Set(REG_DICT["ra"], self.IFID.pc_out + 4)
 		else:
 			self.PCSrcJ = 0
 

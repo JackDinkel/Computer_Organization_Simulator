@@ -18,6 +18,46 @@ p.Memory.Store_Word(60, 0x00000000) # nop
 p.Memory.Store_Word(64, 0x00000000) # nop
 p.Memory.Store_Word(68, 0x00000000) # nop
 
+// ALU test
+p.Memory.Store_Word(0,  0x2008000F) # addi t0 zero 0xF
+p.Memory.Store_Word(4,  0x20090005) # addi t1 zero 0x5
+p.Memory.Store_Word(8,  0x01095025) # or   t2 t0 t1
+p.Memory.Store_Word(12, 0x01095824) # and  t3 t0 t1
+p.Memory.Store_Word(16, 0x01096027) # nor  t4 t0 t1
+p.Memory.Store_Word(20, 0x01096826) # xor  t5 t0 t1
+p.Memory.Store_Word(24, 0x00087080) # sll  t6 t0 0x2
+p.Memory.Store_Word(28, 0x00087882) # srl  t7 t0 0x2
+p.Memory.Store_Word(32, 0x0128C022) # sub  t8 t1 t0
+p.Memory.Store_Word(36, 0x0128C82A) # slt  t9 t1 t0
+p.Memory.Store_Word(40, 0x00000000) # nop
+p.Memory.Store_Word(44, 0x00000000) # nop
+p.Memory.Store_Word(48, 0x00000000) # nop
+p.Memory.Store_Word(52, 0x00000000) # nop
+p.Memory.Store_Word(56, 0x00000000) # nop
+p.Memory.Store_Word(60, 0x00000000) # nop
+p.Memory.Store_Word(64, 0x00000000) # nop
+p.Memory.Store_Word(68, 0x00000000) # nop
+
+// ALU imm test
+p.Memory.Store_Word(0,  0x2008000F) # addi t0 zero 0xF
+p.Memory.Store_Word(4,  0x20090005) # addi t1 zero 0x5
+p.Memory.Store_Word(8,  0x312A0005) # andi t2 t1 0x5 <-- bug due to no forwarding
+p.Memory.Store_Word(12, 0x392B0003) # xori t3 t1 0x3
+p.Memory.Store_Word(16, 0x350C0003) # ori  t4 t0 0x3
+p.Memory.Store_Word(20, 0x292D000F) # slti t5 t1 0xF
+p.Memory.Store_Word(24, 0x00000000) # nop
+p.Memory.Store_Word(28, 0x00000000) # nop
+p.Memory.Store_Word(32, 0x00000000) # nop
+p.Memory.Store_Word(36, 0x00000000) # nop
+p.Memory.Store_Word(40, 0x00000000) # nop
+p.Memory.Store_Word(44, 0x00000000) # nop
+p.Memory.Store_Word(48, 0x00000000) # nop
+p.Memory.Store_Word(52, 0x00000000) # nop
+p.Memory.Store_Word(56, 0x00000000) # nop
+p.Memory.Store_Word(60, 0x00000000) # nop
+p.Memory.Store_Word(64, 0x00000000) # nop
+p.Memory.Store_Word(68, 0x00000000) # nop
+
 // branch test
 p.Memory.Store_Word(0,  0x20080009) # addi t0 zero 0x0009
 p.Memory.Store_Word(4,  0x20090009) # addi t1 zero 0x0009
@@ -140,10 +180,50 @@ p.Memory.Store_Word(60, 0x00000000) # nop
 p.Memory.Store_Word(64, 0x00000000) # nop
 p.Memory.Store_Word(68, 0x00000000) # nop
 
+// branch (NE) forward test
+p.Memory.Store_Word(0,  0x20080009) # addi t0 zero 0x0009
+p.Memory.Store_Word(4,  0x20090009) # addi t1 zero 0x0008
+p.Memory.Store_Word(8,  0x00000000) # nop
+p.Memory.Store_Word(12, 0x15090004) # bne t0 t1 0x0004
+p.Memory.Store_Word(16, 0x200b0009) # addi t3 zero 0x0009
+p.Memory.Store_Word(20, 0x00000000) # nop
+p.Memory.Store_Word(24, 0x00000000) # nop
+p.Memory.Store_Word(28, 0x00000000) # nop
+p.Memory.Store_Word(32, 0x200a0009) # addi t2 zero 0x0009
+p.Memory.Store_Word(36, 0x00000000) # nop
+p.Memory.Store_Word(40, 0x00000000) # nop
+p.Memory.Store_Word(44, 0x00000000) # nop
+p.Memory.Store_Word(48, 0x00000000) # nop
+p.Memory.Store_Word(52, 0x00000000) # nop
+p.Memory.Store_Word(56, 0x00000000) # nop
+p.Memory.Store_Word(60, 0x00000000) # nop
+p.Memory.Store_Word(64, 0x00000000) # nop
+p.Memory.Store_Word(68, 0x00000000) # nop
+
 // jump test
 p.Memory.Store_Word(0,   0x20080009) # addi t0 zero 0x0009
 p.Memory.Store_Word(4,   0x20090009) # addi t1 zero 0x0009
 p.Memory.Store_Word(8,   0x08000011) # j 0x11
+p.Memory.Store_Word(12,  0x200c0009) # addi t4 zero 0x0009
+p.Memory.Store_Word(16,  0x00000000) # nop
+p.Memory.Store_Word(20,  0x00000000) # nop
+p.Memory.Store_Word(24,  0x00000000) # nop
+p.Memory.Store_Word(68,  0x200a0009) # addi t2 zero 0x0009
+p.Memory.Store_Word(72,  0x200b0009) # addi t3 zero 0x0009
+p.Memory.Store_Word(76,  0x00000000) # nop
+p.Memory.Store_Word(80,  0x00000000) # nop
+p.Memory.Store_Word(84,  0x00000000) # nop
+p.Memory.Store_Word(88,  0x00000000) # nop
+p.Memory.Store_Word(92,  0x00000000) # nop
+p.Memory.Store_Word(96,  0x00000000) # nop
+p.Memory.Store_Word(100, 0x00000000) # nop
+p.Memory.Store_Word(104, 0x00000000) # nop
+p.Memory.Store_Word(108, 0x00000000) # nop
+
+// jal test
+p.Memory.Store_Word(0,   0x20080009) # addi t0 zero 0x0009
+p.Memory.Store_Word(4,   0x20090009) # addi t1 zero 0x0009
+p.Memory.Store_Word(8,   0x0C000011) # jal 0x11
 p.Memory.Store_Word(12,  0x200c0009) # addi t4 zero 0x0009
 p.Memory.Store_Word(16,  0x00000000) # nop
 p.Memory.Store_Word(20,  0x00000000) # nop

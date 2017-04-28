@@ -32,6 +32,7 @@ ALU_DICT = {
   "JAL"   : 29,
   "BEQ"   : 30,
   "BNE"   : 31,
+  "JR"    : 32
 }
 
 class EXControl(object):

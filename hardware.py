@@ -324,7 +324,7 @@ def ALU(input1, input2, shamt, ALUControl):
   # TODO: How does this interface with ALU Control? What is the zero Zero line on page 265?
   if   ALUControl == ALU_DICT["X"]:
     return 0, 0, 0
-  elif ALUControl == ALU_DICT["J"]:
+  elif ALUControl == ALU_DICT["JR"]:
     return 0, 1, 0
   elif ALUControl == ALU_DICT["AND"]:
     return input1 & input2, 0, 0
@@ -387,7 +387,7 @@ def ALU(input1, input2, shamt, ALUControl):
   elif ALUControl == ALU_DICT["J"]:
     return 0, 0, 0
   elif ALUControl == ALU_DICT["JAL"]:
-    return "pc", 0, 1 # TODO
+    return 0, 0, 1 # TODO
   elif ALUControl == ALU_DICT["BEQ"]:
     return (0, 0, 1) if input1 == input2 else (0, 0, 0)
   elif ALUControl == ALU_DICT["BNE"]:
