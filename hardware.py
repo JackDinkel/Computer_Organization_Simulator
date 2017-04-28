@@ -174,7 +174,7 @@ class Memory(object):
     read_data = 0
 
     if MemRead:
-      assert Op >= 12 and Op <= 16, "Op out of bounds: %s" % Op
+      #assert Op >= 12 and Op <= 16, "Op out of bounds: %s" % Op
       if Op == ALU_DICT["LW"]:
         read_data = Memory.Load_Word(self, address)
       if Op == ALU_DICT["LBU"]:
@@ -183,7 +183,7 @@ class Memory(object):
         read_data = Memory.Load_Half_Unsigned(self, address)
 
     if MemWrite:
-      assert Op >= 17 and Op <= 19, "Op out of bounds: %s" % Op
+      #assert Op >= 17 and Op <= 19, "Op out of bounds: %s" % Op
       if Op == ALU_DICT["SB"]:
         Memory.Store_Byte(self, address, write_data)
       if Op == ALU_DICT["SH"]:
@@ -318,7 +318,9 @@ def ALU_Input_Mux2(register, sign_extended, ALUSrc2):
 
 def ALU(input1, input2, shamt, ALUControl):
   # TODO: How does this interface with ALU Control? What is the zero Zero line on page 265?
-  if   ALUControl == ALU_DICT["J"]:
+  if   ALUControl == ALU_DICT["X"]:
+    return 0, 0, 0
+  elif ALUControl == ALU_DICT["J"]:
     return 0, 1, 0
   elif ALUControl == ALU_DICT["AND"]:
     return input1 & input2, 0, 0

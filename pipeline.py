@@ -6,8 +6,7 @@ from control import *
 from decode import *
 
 #constants
-INSTR_MEM_SIZE = 100
-DATA_MEM_SIZE = 100
+MEM_SIZE = 400
 
 def pipelineMain():
 	p = Pipeline()
@@ -16,27 +15,27 @@ def pipelineMain():
 	p.IFID.pc_out = 0x00000000 
 
 	# initialize some code
-	p.Instruction_Memory.Store_Word(0,   0x20080009) # addi t0 zero 0x0009
-	p.Instruction_Memory.Store_Word(4,   0x20090009) # addi t1 zero 0x0009
-	p.Instruction_Memory.Store_Word(8,   0x08000011) # j 0x11
-	p.Instruction_Memory.Store_Word(12,  0x00000000) # nop
-	p.Instruction_Memory.Store_Word(16,  0x00000000) # nop
-	p.Instruction_Memory.Store_Word(20,  0x00000000) # nop
-	p.Instruction_Memory.Store_Word(24,  0x00000000) # nop
-	p.Instruction_Memory.Store_Word(68,  0x200a0009) # addi t2 zero 0x0009
-	p.Instruction_Memory.Store_Word(72,  0x200b0009) # addi t3 zero 0x0009
-	p.Instruction_Memory.Store_Word(76,  0x00000000) # nop
-	p.Instruction_Memory.Store_Word(80,  0x00000000) # nop
-	p.Instruction_Memory.Store_Word(84,  0x00000000) # nop
-	p.Instruction_Memory.Store_Word(88,  0x00000000) # nop
-	p.Instruction_Memory.Store_Word(92,  0x00000000) # nop
-	p.Instruction_Memory.Store_Word(96,  0x00000000) # nop
-	p.Instruction_Memory.Store_Word(100,  0x00000000) # nop
-	p.Instruction_Memory.Store_Word(104,  0x00000000) # nop
-	p.Instruction_Memory.Store_Word(108, 0x00000000) # nop
+	p.Memory.Store_Word(0,   0x20080009) # addi t0 zero 0x0009
+	p.Memory.Store_Word(4,   0x20090009) # addi t1 zero 0x0009
+	p.Memory.Store_Word(8,   0x08000011) # j 0x11
+	p.Memory.Store_Word(12,  0x200c0009) # addi t4 zero 0x0009
+	p.Memory.Store_Word(16,  0x00000000) # nop
+	p.Memory.Store_Word(20,  0x00000000) # nop
+	p.Memory.Store_Word(24,  0x00000000) # nop
+	p.Memory.Store_Word(68,  0x200a0009) # addi t2 zero 0x0009
+	p.Memory.Store_Word(72,  0x200b0009) # addi t3 zero 0x0009
+	p.Memory.Store_Word(76,  0x00000000) # nop
+	p.Memory.Store_Word(80,  0x00000000) # nop
+	p.Memory.Store_Word(84,  0x00000000) # nop
+	p.Memory.Store_Word(88,  0x00000000) # nop
+	p.Memory.Store_Word(92,  0x00000000) # nop
+	p.Memory.Store_Word(96,  0x00000000) # nop
+	p.Memory.Store_Word(100, 0x00000000) # nop
+	p.Memory.Store_Word(104, 0x00000000) # nop
+	p.Memory.Store_Word(108, 0x00000000) # nop
 
 	# start pipeline
-	for i in range(1,15):
+	for i in range(1,20):
 		p.pipelineLoop()
 
 	print "\nt0: %d" % p.Register_File.Get(REG_DICT["t0"])
@@ -59,9 +58,8 @@ class Pipeline(object):
 
 	# state elements
 	PC = HW.PC()
-	Instruction_Memory = HW.Instruction_Memory(INSTR_MEM_SIZE)
+	Memory = HW.Memory([], MEM_SIZE)
 	Register_File = HW.Register_File()
-	Data_Memory = HW.Data_Memory(DATA_MEM_SIZE)
 
 	# non-register signals
 	WriteData = 0
@@ -82,7 +80,7 @@ class Pipeline(object):
 		pc = HW.PC_Input_Mux(self.IFID.pc_out, self.IDEX.branchAddress_out, self.IDEX.jumpAddress_out, 
 			self.PCSrc, self.PCSrcJ)
 
-		instruction_temp.word = self.Instruction_Memory.Load_Word(pc)
+		instruction_temp.word = self.Memory.Instruction_Operate(pc, 0, 1, 0)
 
 		print "%d, %d" % (pc, instruction_temp.word)
 
@@ -183,9 +181,9 @@ class Pipeline(object):
 		# ALU
 		alu_input_1 = HW.ALU_Reg_A_Mux(self.IDEX.readData1_out, self.WriteData, self.EXMEM.ALUResult_out, forwardA)
 		alu_input_2 = HW.ALU_Reg_B_MUX(self.IDEX.readData2_out, self.WriteData, self.EXMEM.ALUResult_out, forwardB)
-		alu_mux_temp = HW.ALU_Input_Mux(alu_input_2, self.IDEX.signExtendImm_out, 
+		alu_mux_temp = HW.ALU_Input_Mux2(alu_input_2, self.IDEX.signExtendImm_out, 
 			self.IDEX.exControl_out.ALUSrc)
-		alu_res_temp = HW.ALU(alu_input_1, alu_mux_temp, self.IDEX.instruction_out.shamt, 
+		alu_res_temp, dc1, dc2 = HW.ALU(alu_input_1, alu_mux_temp, self.IDEX.instruction_out.shamt, 
 			self.IDEX.exControl_out.ALUOp)
 
 		# inputs to EXMEM register
@@ -195,7 +193,7 @@ class Pipeline(object):
 
 	def MEM(self):
 		# operate on data memory
-		read_data_temp = self.Data_Memory.Operate(self.EXMEM.ALUResult_out, self.EXMEM.readData2_out, 
+		read_data_temp = self.Memory.Data_Operate(self.EXMEM.ALUResult_out, self.EXMEM.readData2_out, 
 			self.EXMEM.memControl_out.MemRead, self.EXMEM.memControl_out.MemWrite, 
 			self.EXMEM.instruction_out.op)
 

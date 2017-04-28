@@ -1,6 +1,6 @@
 
 ALU_DICT = {
-  "J"     : 0,
+  "X"     : 0,
   "AND"   : 1,
   "OR"    : 2,
   "ADD"   : 3,
@@ -31,7 +31,7 @@ ALU_DICT = {
   "J"     : 28,
   "JAL"   : 29,
   "BEQ"   : 30,
-  "BNE"   : 31
+  "BNE"   : 31,
 }
 
 class EXControl(object):
@@ -89,7 +89,7 @@ def updateControl(op, funct, exc, memc, wbc):
     memc.MemWrite = 0
     exc.ALUSrc    = 0
     wbc.RegWrite  = 1
-    exc.ALUOp     = self.__funct_dic[funct]
+    exc.ALUOp     = funct_dic[funct]
 
   elif op == 0x01: # BLTZ
     exc.RegDst    = 0
