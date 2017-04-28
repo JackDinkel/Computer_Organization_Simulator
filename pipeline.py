@@ -16,25 +16,24 @@ def pipelineMain():
 	p.IFID.pc_out = 0x00000000 
 
 	# initialize some code
-	p.Instruction_Memory.Store_Word(0,  0x20080009) # addi t0 zero 0x0009
-	p.Instruction_Memory.Store_Word(4,  0x8C0D0030) # lw t5, 0x30(zero)
-	p.Instruction_Memory.Store_Word(8,  0x110D0004) # beq t0 t5 0x0004
-	p.Instruction_Memory.Store_Word(12, 0x200b0009) # addi t3 zero 0x0009
-	p.Instruction_Memory.Store_Word(16, 0x00000000) # nop
-	p.Instruction_Memory.Store_Word(20, 0x00000000) # nop
-	p.Instruction_Memory.Store_Word(24, 0x00000000) # nop
-	p.Instruction_Memory.Store_Word(28, 0x200a0009) # addi t2 zero 0x0009
-	p.Instruction_Memory.Store_Word(32, 0x00000000) # nop
-	p.Instruction_Memory.Store_Word(36, 0x00000000) # nop
-	p.Instruction_Memory.Store_Word(40, 0x00000000) # nop
-	p.Instruction_Memory.Store_Word(44, 0x00000000) # nop
-	p.Instruction_Memory.Store_Word(48, 0x00000000) # nop
-	p.Instruction_Memory.Store_Word(52, 0x00000000) # nop
-	p.Instruction_Memory.Store_Word(56, 0x00000000) # nop
-	p.Instruction_Memory.Store_Word(60, 0x00000000) # nop
-	p.Instruction_Memory.Store_Word(64, 0x00000000) # nop
-	p.Instruction_Memory.Store_Word(68, 0x00000000) # nop
-	p.Data_Memory.Store_Word(48, 0x00000009)
+	p.Instruction_Memory.Store_Word(0,   0x20080009) # addi t0 zero 0x0009
+	p.Instruction_Memory.Store_Word(4,   0x20090009) # addi t1 zero 0x0009
+	p.Instruction_Memory.Store_Word(8,   0x08000011) # j 0x11
+	p.Instruction_Memory.Store_Word(12,  0x00000000) # nop
+	p.Instruction_Memory.Store_Word(16,  0x00000000) # nop
+	p.Instruction_Memory.Store_Word(20,  0x00000000) # nop
+	p.Instruction_Memory.Store_Word(24,  0x00000000) # nop
+	p.Instruction_Memory.Store_Word(68,  0x200a0009) # addi t2 zero 0x0009
+	p.Instruction_Memory.Store_Word(72,  0x200b0009) # addi t3 zero 0x0009
+	p.Instruction_Memory.Store_Word(76,  0x00000000) # nop
+	p.Instruction_Memory.Store_Word(80,  0x00000000) # nop
+	p.Instruction_Memory.Store_Word(84,  0x00000000) # nop
+	p.Instruction_Memory.Store_Word(88,  0x00000000) # nop
+	p.Instruction_Memory.Store_Word(92,  0x00000000) # nop
+	p.Instruction_Memory.Store_Word(96,  0x00000000) # nop
+	p.Instruction_Memory.Store_Word(100,  0x00000000) # nop
+	p.Instruction_Memory.Store_Word(104,  0x00000000) # nop
+	p.Instruction_Memory.Store_Word(108, 0x00000000) # nop
 
 	# start pipeline
 	for i in range(1,15):
@@ -67,6 +66,7 @@ class Pipeline(object):
 	# non-register signals
 	WriteData = 0
 	PCSrc = 0
+	PCSrcJ = 0
 
 	def pipelineLoop(self):
 		self.IF()
@@ -79,8 +79,8 @@ class Pipeline(object):
 	def IF(self):
 		instruction_temp = Instruction()
 
-		pc = HW.PC_Input_Mux(self.IFID.pc_out, self.IDEX.branchAddress_out, self.EXMEM.jumpAddress_out, 
-			self.PCSrc, self.EXMEM.memControl_out.Jump)
+		pc = HW.PC_Input_Mux(self.IFID.pc_out, self.IDEX.branchAddress_out, self.IDEX.jumpAddress_out, 
+			self.PCSrc, self.PCSrcJ)
 
 		instruction_temp.word = self.Instruction_Memory.Load_Word(pc)
 
@@ -154,6 +154,17 @@ class Pipeline(object):
 		# calculate branch address
 		branch_addr_temp = HW.Shift_Left_2(sign_extend_imm) + self.IFID.pc_out
 
+		# jump detection
+		if ((self.IFID.instruction_out.op == OP_DICT["J"]) or 
+			(self.IFID.instruction_out.op == OP_DICT["JAL"])):
+			self.IFID.flush()
+			self.PCSrcJ = 1
+		else:
+			self.PCSrcJ = 0
+
+		# calculate jump address
+		jump_addr_temp = HW.Calculate_Jump_Addr(self.IFID.instruction_out.j_imm, self.IFID.pc_out)
+
 		# Register file operations
 		read_data_1, read_data_2 = self.Register_File.Operate(self.IFID.instruction_out.rs, 
 			self.IFID.instruction_out.rt, self.MEMWB.destinationReg_out, self.WriteData, 
@@ -161,7 +172,7 @@ class Pipeline(object):
 
 		# inputs to IDEX register
 		self.IDEX.set(self.IFID.instruction_out, dest_reg_temp, sign_extend_imm, self.IFID.pc_out, 
-			read_data_1, read_data_2, branch_addr_temp, wbcTemp, memcTemp, excTemp)
+			read_data_1, read_data_2, branch_addr_temp, jump_addr_temp, wbcTemp, memcTemp, excTemp)
 
 	def EX(self):
 		# Forwarding
@@ -177,12 +188,9 @@ class Pipeline(object):
 		alu_res_temp = HW.ALU(alu_input_1, alu_mux_temp, self.IDEX.instruction_out.shamt, 
 			self.IDEX.exControl_out.ALUOp)
 
-		# calculate jump address
-		jump_addr_temp = HW.Calculate_Jump_Addr(self.IDEX.instruction_out.j_imm, self.IDEX.pc_out)
-
 		# inputs to EXMEM register
 		self.EXMEM.set(self.IDEX.instruction_out, self.IDEX.destinationReg_out, self.IDEX.readData2_out, 
-			alu_res_temp, (alu_res_temp == 0), jump_addr_temp, self.IDEX.wbControl_out, 
+			alu_res_temp, (alu_res_temp == 0), self.IDEX.wbControl_out, 
 			self.IDEX.memControl_out)
 
 	def MEM(self):
