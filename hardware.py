@@ -13,6 +13,7 @@
 '''
 
 from control import ALU_DICT
+from opcode import *
 from globals import *
 import mask
 
@@ -284,6 +285,28 @@ def Sign_Extend(input_val, num_bits):
   return twos_val if twos_val >= 0 else (twos_val + 0x100000000)
 
 
+def Hazard_Detection_Unit(memread, idex_rt, ifid_rs, ifid_rt):
+  if ((memread == 1) and ((idex_rt == ifid_rt) or (idex_rt == ifid_rs))):
+    return 1
+  else:
+    return 0
+
+
+def Hazard_Detection_Mux(exc, memc, wbc, hazard):
+  if hazard == 1:
+    exc.RegDst    = 0
+    memc.Branch   = 0
+    memc.Jump     = 0
+    memc.MemRead  = 0
+    wbc.MemToReg  = 0
+    memc.MemWrite = 0
+    exc.ALUSrc    = 0
+    wbc.RegWrite  = 0
+    exc.ALUOp     = 0
+  return exc, memc, wbc
+
+
+
 ## Execute and Address Calculation ##
 def ALU_Input_Mux1(register1, register2, ALUSrc1):
   return MUX(register1, register2, ALUSrc1)
@@ -378,12 +401,63 @@ def Calculate_Jump_Addr(unshifted_num, next_pc):
   # TODO: assert unshifted_num is in bounds (26 bits)
   mask = 0xF0000000
   pc_upper = next_pc & mask
-  return (unshifted_num << 2) & mask # Using Word Addresses
+  return (unshifted_num << 2) + pc_upper # Using Word Addresses
 
 
 
 def Address_Adder(next_pc, shifted_num):
   return next_pc + shifted_num
+
+
+
+# see figures 4.56 and 4.57
+def Forwarding_Unit(idex_rs, idex_rt, exmem_rd, memwb_rd, exmem_reg_write, memwb_reg_write):
+  forwardA = 0
+  forwardB = 0
+
+  if (exmem_reg_write == 1) and (exmem_rd != 0) and (exmem_rd == idex_rs):
+    forwardA = 2
+
+  if (exmem_reg_write == 1) and (exmem_rd != 0) and (exmem_rd == idex_rt):
+    forwardB = 2
+
+  if ((memwb_reg_write == 1) and (memwb_rd != 0) and 
+    not ((exmem_reg_write == 1) and (exmem_rd != 0) and (exmem_rd == idex_rs)) 
+    and (memwb_rd == idex_rs)):
+    forwardA = 1
+
+  if ((memwb_reg_write == 1) and (memwb_rd != 0) and 
+    not ((exmem_reg_write == 1) and (exmem_rd != 0) and (exmem_rd == idex_rt)) 
+    and (memwb_rd == idex_rt)):
+    forwardB = 1
+
+  return forwardA, forwardB
+
+
+
+def ALU_Reg_A_Mux(reg_data_1, write_back, alu_result, forwardA):
+  assert forwardA >= 0 and forwardA <= 2, "forwardA out of bounds: %d" % forwardA
+  if forwardA == 0:
+    return reg_data_1
+  elif forwardA == 1:
+    return write_back
+  elif forwardA == 2:
+    return alu_result
+  else:
+    return 0
+
+
+
+def ALU_Reg_B_MUX(reg_data_2, write_back, alu_result, forwardB):
+  assert forwardB >= 0 and forwardB <= 2, "forwardB out of bounds: %d" % forwardB
+  if forwardB == 0:
+    return reg_data_2
+  elif forwardB == 1:
+    return write_back
+  elif forwardB == 2:
+    return alu_result
+  else:
+    return 0
 
 
 
@@ -401,6 +475,7 @@ def Address_Adder(next_pc, shifted_num):
 #      Memory.Store_Word(self, address, write_data)
 #
 #    return read_data
+
 
 
 
