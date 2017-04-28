@@ -15,24 +15,22 @@ def pipelineMain():
 	p.IFID.pc_out = 0x00000000 
 
 	# initialize some code
-	p.Memory.Store_Word(0,   0x20080000) # addi t0 zero 0x0000
-	p.Memory.Store_Word(4,   0x20090044) # addi t1 zero 0x0044
-	p.Memory.Store_Word(8,   0x200a0009) # addi t2 zero 0x0009
-	p.Memory.Store_Word(12,  0x200d0000) # addi t5 zero 0x0000
-	p.Memory.Store_Word(16,  0x0148580B) # movn t3 t2 t0
-	p.Memory.Store_Word(20,  0x0149600B) # movn t4 t2 t1
-	p.Memory.Store_Word(24,  0x0149680A) # movz t5 t2 t1
-	p.Memory.Store_Word(28,  0x0148700A) # movz t6 t2 t0
-	p.Memory.Store_Word(32,  0x00000000) # nop
-	p.Memory.Store_Word(36,  0x00000000) # nop
-	p.Memory.Store_Word(40,  0x00000000) # nop
-	p.Memory.Store_Word(44,  0x00000000) # nop
-	p.Memory.Store_Word(48,  0x00000000) # nop
-	p.Memory.Store_Word(52,  0x00000000) # nop
-	p.Memory.Store_Word(56,  0x00000000) # nop
-	p.Memory.Store_Word(60,  0x00000000) # nop
-	p.Memory.Store_Word(64,  0x00000000) # nop
-	p.Memory.Store_Word(68,  0x00000000) # nop
+	p.Memory.Store_Word(0,  0x20080009) # addi t0 zero 0x0009
+	p.Memory.Store_Word(4,  0x8C0D0050) # lw t5, 0x50(zero)
+	p.Memory.Store_Word(8,  0x1DA00004) # bgtz t5 0x0004
+	p.Memory.Store_Word(12, 0x200b0009) # addi t3 zero 0x0009
+	p.Memory.Store_Word(28, 0x200a0009) # addi t2 zero 0x0009
+	p.Memory.Store_Word(32, 0x19400004) # blez t2 0x0004
+	p.Memory.Store_Word(36, 0x200c0009) # addi t4 zero 0x0009
+	p.Memory.Store_Word(40, 0x04000020) # bltz zero 0x20
+	p.Memory.Store_Word(44, 0x200EFFFF) # addi t6 zero 0xFFFF
+	p.Memory.Store_Word(48, 0x05C00020) # bltz t6 0x20
+	p.Memory.Store_Word(52, 0x00000000) # nop
+	p.Memory.Store_Word(56, 0x00000000) # nop
+	p.Memory.Store_Word(60, 0x00000000) # nop
+	p.Memory.Store_Word(64, 0x00000000) # nop
+	p.Memory.Store_Word(68, 0x00000000) # nop
+	p.Memory.Store_Word(80, 0x00000009) # data
 
 	# start pipeline
 	for i in range(1,20):
@@ -120,7 +118,7 @@ class Pipeline(object):
 		else:
 			rt_value = self.Register_File.Get(self.IFID.instruction_out.rt)
 
-		# branch hazards
+		# comparison branch hazards/detection
 		if ((self.IFID.instruction_out.op == OP_DICT["BEQ"] or 
 			self.IFID.instruction_out.op == OP_DICT["BNE"]) and 
 		(((self.EXMEM.memControl_out.MemRead == 1) and 
@@ -138,6 +136,30 @@ class Pipeline(object):
 			# branch detection
 			if (((self.IFID.instruction_out.op == OP_DICT["BEQ"]) and (rs_value == rt_value)) 
 				or ((self.IFID.instruction_out.op == OP_DICT["BNE"]) and (rs_value != rt_value))):
+				self.IFID.flush()
+				self.PCSrc = 1
+			else:
+				self.PCSrc = 0
+
+		# single register branch hazards/detection
+		if ((self.IFID.instruction_out.op == OP_DICT["BGTZ"] or 
+			self.IFID.instruction_out.op == OP_DICT["BLTZ"] or 
+			self.IFID.instruction_out.op == OP_DICT["BLEZ"]) and 
+		((self.EXMEM.memControl_out.MemRead == 1 and 
+			self.EXMEM.destinationReg_out == self.IFID.instruction_out.rs) or 
+		((self.IDEX.memControl_out.MemRead == 1 or self.IDEX.instruction_out.op == 0) and 
+			self.IDEX.destinationReg_out == self.IFID.instruction_out.rs) or 
+		((self.IDEX.instruction_out.op > 3 and self.IDEX.instruction_out.op != OP_DICT["BGTZ"] and
+		 self.IDEX.instruction_out.op != OP_DICT["BLTZ"] and 
+		 self.IDEX.instruction_out.op != OP_DICT["BLEZ"]) and (self.IDEX.memControl_out.MemWrite == 0) 
+			and (self.IDEX.destinationReg_out == self.IFID.instruction_out.rs)))):
+			HW.Hazard_Detection_Mux(excTemp, memcTemp, wbcTemp, 1)
+			self.IFID.stall = 1
+		else:
+			# branch detection
+			if ((self.IFID.instruction_out.op == OP_DICT["BGTZ"] and rs_value > 0) or 
+				(self.IFID.instruction_out.op == OP_DICT["BLTZ"] and rs_value < 0) or 
+				(self.IFID.instruction_out.op == OP_DICT["BLEZ"] and rs_value <= 0)):
 				self.IFID.flush()
 				self.PCSrc = 1
 			else:

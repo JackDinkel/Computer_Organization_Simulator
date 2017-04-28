@@ -279,3 +279,21 @@ p.Memory.Store_Word(56,  0x00000000) # nop
 p.Memory.Store_Word(60,  0x00000000) # nop
 p.Memory.Store_Word(64,  0x00000000) # nop
 p.Memory.Store_Word(68,  0x00000000) # nop
+
+// bgtz bltz blez test
+p.Memory.Store_Word(0,  0x20080009) # addi t0 zero 0x0009
+p.Memory.Store_Word(4,  0x8C0D0050) # lw t5, 0x50(zero)
+p.Memory.Store_Word(8,  0x1DA00004) # bgtz t5 0x0004
+p.Memory.Store_Word(12, 0x200b0009) # addi t3 zero 0x0009
+p.Memory.Store_Word(28, 0x200a0009) # addi t2 zero 0x0009
+p.Memory.Store_Word(32, 0x19400004) # blez t2 0x0004
+p.Memory.Store_Word(36, 0x200c0009) # addi t4 zero 0x0009
+p.Memory.Store_Word(40, 0x04000020) # bltz zero 0x20
+p.Memory.Store_Word(44, 0x200EFFFF) # addi t6 zero 0xFFFF
+p.Memory.Store_Word(48, 0x05C00020) # bltz t6 0x20
+p.Memory.Store_Word(52, 0x00000000) # nop
+p.Memory.Store_Word(56, 0x00000000) # nop
+p.Memory.Store_Word(60, 0x00000000) # nop
+p.Memory.Store_Word(64, 0x00000000) # nop
+p.Memory.Store_Word(68, 0x00000000) # nop
+p.Memory.Store_Word(80, 0x00000009) # data

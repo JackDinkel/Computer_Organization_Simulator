@@ -6,8 +6,8 @@ OP_DICT = {
   "JR"    : 0x00, # tested
   "NOR"   : 0x00, # tested
   "OR"    : 0x00, # tested
-  "MOVN"  : 0x00,
-  "MOVZ"  : 0x00,
+  "MOVN"  : 0x00, # tested
+  "MOVZ"  : 0x00, # tested
   "SLT"   : 0x00, # tested
   "SLTU"  : 0x00,
   "SLL"   : 0x00, # tested
