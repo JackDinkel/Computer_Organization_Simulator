@@ -15,13 +15,13 @@ def pipelineMain():
 	p.IFID.pc_out = 0x00000000 
 
 	# initialize some code
-	p.Memory.Store_Word(0,  0x2008000F) # addi t0 zero 0xF
-	p.Memory.Store_Word(4,  0x20090005) # addi t1 zero 0x5
-	p.Memory.Store_Word(8,  0x312A0001) # andi t2 t1 0x1 <-- bug due to no forwarding
-	p.Memory.Store_Word(12, 0x392B0003) # xori t3 t1 0x3
-	p.Memory.Store_Word(16, 0x350C0003) # ori  t4 t0 0x3
-	p.Memory.Store_Word(20, 0x292D000F) # slti t5 t1 0xF
-	p.Memory.Store_Word(24, 0x00000000) # nop
+	p.Memory.Store_Word(0,  0x20090002) # addi t1 zero 0x0002
+	p.Memory.Store_Word(4,  0x200a0003) # addi t2 zero 0x0003
+	p.Memory.Store_Word(8,  0x200b0004) # addi t3 zero 0x0004
+	p.Memory.Store_Word(12, 0x200c0005) # addi t4 zero 0x0005
+	p.Memory.Store_Word(16, 0x012A4820) # add t1 t1 t2
+	p.Memory.Store_Word(20, 0x012B4820) # add t1 t1 t3
+	p.Memory.Store_Word(24, 0x012C4820) # add t1 t1 t4
 	p.Memory.Store_Word(28, 0x00000000) # nop
 	p.Memory.Store_Word(32, 0x00000000) # nop
 	p.Memory.Store_Word(36, 0x00000000) # nop
@@ -178,7 +178,7 @@ class Pipeline(object):
 	def EX(self):
 		# Forwarding
 		(forwardA, forwardB) = HW.Forwarding_Unit(self.IDEX.instruction_out.rs, self.IDEX.instruction_out.rt, 
-			self.EXMEM.instruction_out.rd, self.MEMWB.destinationReg_out, self.EXMEM.wbControl_out.RegWrite, 
+			self.EXMEM.destinationReg_out, self.MEMWB.destinationReg_out, self.EXMEM.wbControl_out.RegWrite, 
 			self.MEMWB.wbControl_out.RegWrite)
 
 		# ALU

@@ -41,7 +41,7 @@ p.Memory.Store_Word(68, 0x00000000) # nop
 // ALU imm test
 p.Memory.Store_Word(0,  0x2008000F) # addi t0 zero 0xF
 p.Memory.Store_Word(4,  0x20090005) # addi t1 zero 0x5
-p.Memory.Store_Word(8,  0x312A0005) # andi t2 t1 0x5 <-- bug due to no forwarding
+p.Memory.Store_Word(8,  0x312A0001) # andi t2 t1 0x1
 p.Memory.Store_Word(12, 0x392B0003) # xori t3 t1 0x3
 p.Memory.Store_Word(16, 0x350C0003) # ori  t4 t0 0x3
 p.Memory.Store_Word(20, 0x292D000F) # slti t5 t1 0xF
