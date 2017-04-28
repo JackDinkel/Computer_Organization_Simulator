@@ -15,24 +15,24 @@ def pipelineMain():
 	p.IFID.pc_out = 0x00000000 
 
 	# initialize some code
-	p.Memory.Store_Word(0,  0x20090002) # addi t1 zero 0x0002
-	p.Memory.Store_Word(4,  0x200a0003) # addi t2 zero 0x0003
-	p.Memory.Store_Word(8,  0x200b0004) # addi t3 zero 0x0004
-	p.Memory.Store_Word(12, 0x200c0005) # addi t4 zero 0x0005
-	p.Memory.Store_Word(16, 0x012A4820) # add t1 t1 t2
-	p.Memory.Store_Word(20, 0x012B4820) # add t1 t1 t3
-	p.Memory.Store_Word(24, 0x012C4820) # add t1 t1 t4
-	p.Memory.Store_Word(28, 0x00000000) # nop
-	p.Memory.Store_Word(32, 0x00000000) # nop
-	p.Memory.Store_Word(36, 0x00000000) # nop
-	p.Memory.Store_Word(40, 0x00000000) # nop
-	p.Memory.Store_Word(44, 0x00000000) # nop
-	p.Memory.Store_Word(48, 0x00000000) # nop
-	p.Memory.Store_Word(52, 0x00000000) # nop
-	p.Memory.Store_Word(56, 0x00000000) # nop
-	p.Memory.Store_Word(60, 0x00000000) # nop
-	p.Memory.Store_Word(64, 0x00000000) # nop
-	p.Memory.Store_Word(68, 0x00000000) # nop
+	p.Memory.Store_Word(0,   0x20080009) # addi t0 zero 0x0009
+	p.Memory.Store_Word(4,   0x20090044) # addi t1 zero 0x0044
+	p.Memory.Store_Word(8,   0x01200008) # jr t1
+	p.Memory.Store_Word(12,  0x200c0009) # addi t4 zero 0x0009
+	p.Memory.Store_Word(16,  0x00000000) # nop
+	p.Memory.Store_Word(20,  0x00000000) # nop
+	p.Memory.Store_Word(24,  0x00000000) # nop
+	p.Memory.Store_Word(68,  0x200a0009) # addi t2 zero 0x0009
+	p.Memory.Store_Word(72,  0x200b0009) # addi t3 zero 0x0009
+	p.Memory.Store_Word(76,  0x00000000) # nop
+	p.Memory.Store_Word(80,  0x00000000) # nop
+	p.Memory.Store_Word(84,  0x00000000) # nop
+	p.Memory.Store_Word(88,  0x00000000) # nop
+	p.Memory.Store_Word(92,  0x00000000) # nop
+	p.Memory.Store_Word(96,  0x00000000) # nop
+	p.Memory.Store_Word(100, 0x00000000) # nop
+	p.Memory.Store_Word(104, 0x00000000) # nop
+	p.Memory.Store_Word(108, 0x00000000) # nop
 
 	# start pipeline
 	for i in range(1,20):
@@ -163,13 +163,31 @@ class Pipeline(object):
 		else:
 			self.PCSrcJ = 0
 
-		# calculate jump address
-		jump_addr_temp = HW.Calculate_Jump_Addr(self.IFID.instruction_out.j_imm, self.IFID.pc_out)
-
 		# Register file operations
 		read_data_1, read_data_2 = self.Register_File.Operate(self.IFID.instruction_out.rs, 
 			self.IFID.instruction_out.rt, self.MEMWB.destinationReg_out, self.WriteData, 
 			self.MEMWB.wbControl_out.RegWrite)
+
+		# jr detection/hazard/forwarding
+		if (self.IFID.instruction_out.op == OP_DICT["JR"] and 
+				self.IFID.instruction_out.funct == FUNCT_DICT["JR"]):
+			if self.IDEX.destinationReg_out == self.IFID.instruction_out.rs: # hazard
+				self.IFID.stall = 1
+				self.PCSrcJ = 0
+			elif self.EXMEM.destinationReg_out == self.IFID.instruction_out.rs: # mem fwd
+				read_data_1 = self.EXMEM.ALUResult_out
+				self.IFID.flush()
+				self.PCSrcJ = 1
+			elif self.MEMWB.destinationReg_out == self.IFID.instruction_out.rs: # wb fwd
+				read_data_1 = self.WriteData
+				self.IFID.flush()
+				self.PCSrcJ = 1
+			else:
+				self.PCSrcJ = 0
+
+		# calculate jump address
+		jump_addr_temp = HW.Calculate_Jump_Addr(self.IFID.instruction_out.j_imm, 
+			read_data_1, self.IFID.pc_out, (self.IFID.instruction_out.op == OP_DICT["JR"]))
 
 		# inputs to IDEX register
 		self.IDEX.set(self.IFID.instruction_out, dest_reg_temp, sign_extend_imm, self.IFID.pc_out, 

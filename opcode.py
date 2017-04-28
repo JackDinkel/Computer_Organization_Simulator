@@ -3,7 +3,7 @@ OP_DICT = {
   "ADD"   : 0x00, # tested
   "ADDU"  : 0x00,
   "AND"   : 0x00, # tested
-  "JR"    : 0x00,
+  "JR"    : 0x00, # tested
   "NOR"   : 0x00, # tested
   "OR"    : 0x00, # tested
   "MOVN"  : 0x00,

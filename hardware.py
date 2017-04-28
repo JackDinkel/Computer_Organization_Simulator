@@ -402,12 +402,15 @@ def Shift_Left_2(unshifted_num):
 
 
 
-def Calculate_Jump_Addr(unshifted_num, next_pc):
+def Calculate_Jump_Addr(unshifted_num, rs_val, next_pc, jr):
   # This takes the place of the shift left 2 and concatenation components on page 271
   # TODO: assert unshifted_num is in bounds (26 bits)
-  mask = 0xF0000000
-  pc_upper = next_pc & mask
-  return (unshifted_num << 2) + pc_upper # Using Word Addresses
+  if jr:
+    return rs_val
+  else:
+    mask = 0xF0000000
+    pc_upper = next_pc & mask
+    return (unshifted_num << 2) + pc_upper # Using Word Addresses
 
 
 
