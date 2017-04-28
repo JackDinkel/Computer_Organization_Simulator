@@ -175,23 +175,27 @@ class Memory(object):
 
     if MemRead:
       #assert Op >= 12 and Op <= 16, "Op out of bounds: %s" % Op
-      if Op == ALU_DICT["LW"]:
-        read_data = Memory.Load_Word(self, address)
-      if Op == ALU_DICT["LBU"]:
-        read_data = Memory.Load_Byte_Unsigned(self, address)
-      if Op == ALU_DICT["LHU"]:
-        read_data = Memory.Load_Half_Unsigned(self, address)
+      if Op == OP_DICT["LW"]:
+        read_data = self.Load_Word(address)
+      elif Op == OP_DICT["LBU"]:
+        read_data = self.Load_Byte_Unsigned(address)
+      elif Op == OP_DICT["LHU"]:
+        read_data = self.Load_Half_Unsigned(address)
+      else:
+        print "unknown load"
 
     if MemWrite:
       #assert Op >= 17 and Op <= 19, "Op out of bounds: %s" % Op
-      if Op == ALU_DICT["SB"]:
-        Memory.Store_Byte(self, address, write_data)
-      if Op == ALU_DICT["SH"]:
-        Memory.Store_Half(self, address, write_data)
-      if Op == ALU_DICT["SW"]:
-        Memory.Store_Word(self, address, write_data)
-      if Op == ALU_DICT["SLT"]:
-        Memory.Store_Word(self, address, write_data)
+      if Op == OP_DICT["SB"]:
+        self.Store_Byte(address, write_data)
+      elif Op == OP_DICT["SH"]:
+        self.Store_Half(address, write_data)
+      elif Op == OP_DICT["SW"]:
+        self.Store_Word(address, write_data)
+      elif Op == OP_DICT["SLT"]:
+        self.Store_Word(address, write_data)
+      else:
+        print "unknown write"
 
     return read_data
 

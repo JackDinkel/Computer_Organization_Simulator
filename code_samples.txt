@@ -63,7 +63,7 @@ p.Memory.Store_Word(0,  0x20090002) # addi t1 zero 0x0002
 p.Memory.Store_Word(4,  0x200a0003) # addi t2 zero 0x0003
 p.Memory.Store_Word(8,  0x200b0004) # addi t3 zero 0x0004
 p.Memory.Store_Word(12, 0x200c0005) # addi t4 zero 0x0005
-p.Memory.Store_Word(16, 0x8C0D0030) # lw t5, 0x30(zero)
+p.Memory.Store_Word(16, 0x8C0D0050) # lw t5, 0x50(zero)
 p.Memory.Store_Word(20, 0x018D6020) # add t4 t4 t5
 p.Memory.Store_Word(24, 0x200e0007) # addi t6 zero 0x0007
 p.Memory.Store_Word(28, 0x00000000) # nop
@@ -77,7 +77,7 @@ p.Memory.Store_Word(56, 0x00000000) # nop
 p.Memory.Store_Word(60, 0x00000000) # nop
 p.Memory.Store_Word(64, 0x00000000) # nop
 p.Memory.Store_Word(68, 0x00000000) # nop
-p.Memory.Store_Word(48, 0x00000005) # data
+p.Memory.Store_Word(80, 0x00000005) # data
 
 // branch hazard test (immediate)
 p.Memory.Store_Word(0,  0x20080009) # addi t0 zero 0x0009
@@ -101,7 +101,7 @@ p.Memory.Store_Word(68, 0x00000000) # nop
 
 // branch hazard test (lw)
 p.Memory.Store_Word(0,  0x20080009) # addi t0 zero 0x0009
-p.Memory.Store_Word(4,  0x8C0D0030) # lw t5, 0x30(zero)
+p.Memory.Store_Word(4,  0x8C0D0050) # lw t5, 0x50(zero)
 p.Memory.Store_Word(8,  0x110D0004) # beq t0 t5 0x0004
 p.Memory.Store_Word(12, 0x200b0009) # addi t3 zero 0x0009
 p.Memory.Store_Word(16, 0x00000000) # nop
@@ -118,7 +118,7 @@ p.Memory.Store_Word(56, 0x00000000) # nop
 p.Memory.Store_Word(60, 0x00000000) # nop
 p.Memory.Store_Word(64, 0x00000000) # nop
 p.Memory.Store_Word(68, 0x00000000) # nop
-p.Data_Memory.Store_Word(48, 0x00000009)
+p.Memory.Store_Word(80, 0x00000009) # data
 
 // branch forward test
 p.Memory.Store_Word(0,  0x20080009) # addi t0 zero 0x0009

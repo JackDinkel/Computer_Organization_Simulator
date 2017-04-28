@@ -15,24 +15,25 @@ def pipelineMain():
 	p.IFID.pc_out = 0x00000000 
 
 	# initialize some code
-	p.Memory.Store_Word(0,   0x20080009) # addi t0 zero 0x0009
-	p.Memory.Store_Word(4,   0x20090009) # addi t1 zero 0x0009
-	p.Memory.Store_Word(8,   0x08000011) # j 0x11
-	p.Memory.Store_Word(12,  0x200c0009) # addi t4 zero 0x0009
-	p.Memory.Store_Word(16,  0x00000000) # nop
-	p.Memory.Store_Word(20,  0x00000000) # nop
-	p.Memory.Store_Word(24,  0x00000000) # nop
-	p.Memory.Store_Word(68,  0x200a0009) # addi t2 zero 0x0009
-	p.Memory.Store_Word(72,  0x200b0009) # addi t3 zero 0x0009
-	p.Memory.Store_Word(76,  0x00000000) # nop
-	p.Memory.Store_Word(80,  0x00000000) # nop
-	p.Memory.Store_Word(84,  0x00000000) # nop
-	p.Memory.Store_Word(88,  0x00000000) # nop
-	p.Memory.Store_Word(92,  0x00000000) # nop
-	p.Memory.Store_Word(96,  0x00000000) # nop
-	p.Memory.Store_Word(100, 0x00000000) # nop
-	p.Memory.Store_Word(104, 0x00000000) # nop
-	p.Memory.Store_Word(108, 0x00000000) # nop
+	p.Memory.Store_Word(0,  0x20080009) # addi t0 zero 0x0009
+	p.Memory.Store_Word(4,  0x8C0D0050) # lw t5, 0x50(zero)
+	p.Memory.Store_Word(8,  0x110D0004) # beq t0 t5 0x0004
+	p.Memory.Store_Word(12, 0x200b0009) # addi t3 zero 0x0009
+	p.Memory.Store_Word(16, 0x00000000) # nop
+	p.Memory.Store_Word(20, 0x00000000) # nop
+	p.Memory.Store_Word(24, 0x00000000) # nop
+	p.Memory.Store_Word(28, 0x200a0009) # addi t2 zero 0x0009
+	p.Memory.Store_Word(32, 0x00000000) # nop
+	p.Memory.Store_Word(36, 0x00000000) # nop
+	p.Memory.Store_Word(40, 0x00000000) # nop
+	p.Memory.Store_Word(44, 0x00000000) # nop
+	p.Memory.Store_Word(48, 0x00000000) # nop
+	p.Memory.Store_Word(52, 0x00000000) # nop
+	p.Memory.Store_Word(56, 0x00000000) # nop
+	p.Memory.Store_Word(60, 0x00000000) # nop
+	p.Memory.Store_Word(64, 0x00000000) # nop
+	p.Memory.Store_Word(68, 0x00000000) # nop
+	p.Memory.Store_Word(80, 0x00000009) # data
 
 	# start pipeline
 	for i in range(1,20):
