@@ -21,9 +21,9 @@ OP_DICT = {
   "XORI"  : 0x0E, # tested
   "BEQ"   : 0x04, # tested
   "BNE"   : 0x05, # tested
-  "BGTZ"  : 0x07,
-  "BLTZ"  : 0x01,
-  "BLEZ"  : 0x06,
+  "BGTZ"  : 0x07, # tested
+  "BLTZ"  : 0x01, # tested
+  "BLEZ"  : 0x06, # tested
   "J"     : 0x02, # tested
   "JAL"   : 0x03, # tested
   "LB"    : 0x20,

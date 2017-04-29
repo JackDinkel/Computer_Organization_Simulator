@@ -288,6 +288,11 @@ def Sign_Extend(input_val, num_bits):
   twos_val = twos_comp(input_val, num_bits)
   return twos_val if twos_val >= 0 else (twos_val + 0x100000000)
 
+def Sign_Extend_Immediate(input_val):
+  if input_val >= 0xf000:
+    return -( (input_val ^ 0xffff) + 1)
+  else:
+    return input_val
 
 def Hazard_Detection_Unit(memread, idex_rt, ifid_rs, ifid_rt):
   if ((memread == 1) and ((idex_rt == ifid_rt) or (idex_rt == ifid_rs))):

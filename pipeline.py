@@ -5,9 +5,7 @@ from opcode import *
 from control import *
 from decode import *
 
-#constants
-MEM_SIZE = 400
-
+# test function
 def pipelineMain():
 	p = Pipeline()
 
@@ -49,6 +47,8 @@ def pipelineMain():
 	print "ra: %d" % p.Register_File.Get(REG_DICT["ra"])
 
 class Pipeline(object):
+	MEM_SIZE = 1200
+
 	# pipeline registers
 	IFID  = pipeline_reg.IFID()
 	IDEX  = pipeline_reg.IDEX()
@@ -64,14 +64,20 @@ class Pipeline(object):
 	WriteData = 0
 	PCSrc = 0
 	PCSrcJ = 0
+	CycleCount = 0
+
+	def __init__(self, program):
+		self.Memory = HW.Memory(program, self.MEM_SIZE)
 
 	def pipelineLoop(self):
-		self.IF()
-		self.WB()
-		self.ID()
-		self.EX()
-		self.MEM()
-		self.updateReg()
+		while self.IFID.pc_out != 0 and self.CycleCount < 5000:
+			self.CycleCount = self.CycleCount + 1
+			self.IF()
+			self.WB()
+			self.ID()
+			self.EX()
+			self.MEM()
+			self.updateReg()
 
 	def IF(self):
 		instruction_temp = Instruction()
@@ -81,7 +87,7 @@ class Pipeline(object):
 
 		instruction_temp.word = self.Memory.Instruction_Operate(pc, 0, 1, 0)
 
-		print "%d, %d" % (pc, instruction_temp.word)
+		print "%d, %s" % (pc, format(instruction_temp.word, '#04x'))
 
 		self.IFID.set(instruction_temp, pc+4)
 
@@ -101,7 +107,7 @@ class Pipeline(object):
 			self.IFID.instruction_out.rd, excTemp.RegDst)
 
 		# sign extend immediate
-		sign_extend_imm = HW.Sign_Extend(self.IFID.instruction_out.i_imm, 16)
+		sign_extend_imm = HW.Sign_Extend_Immediate(self.IFID.instruction_out.i_imm)
 
 		#branch forwarding
 		if (self.EXMEM.wbControl_out.RegWrite and (self.EXMEM.destinationReg_out == self.IFID.instruction_out.rs)):
@@ -177,6 +183,11 @@ class Pipeline(object):
 
 		# calculate branch address
 		branch_addr_temp = HW.Shift_Left_2(sign_extend_imm) + self.IFID.pc_out
+		if branch_here:
+			print "imm: %d" % self.IFID.instruction_out.i_imm
+			print "pc: %d" % self.IFID.pc_out
+			print "sxim: %d" % sign_extend_imm
+			print "branch: %d" % branch_addr_temp
 
 		# jump detection
 		if ((self.IFID.instruction_out.op == OP_DICT["J"]) or 
@@ -265,4 +276,22 @@ class Pipeline(object):
 		self.MEMWB.update()
 
 if __name__ == "__main__":
-	pipelineMain()
+	# load the program
+	with open("exampleProgram.txt", "r") as f:
+		program = f.readlines()
+	program = [int(line.split(",")[0].strip(), 16) for line in program]
+	
+	# initialize
+	pipeline = Pipeline(program)
+	pipeline.Register_File.Set(REG_DICT["sp"], pipeline.Memory.Load_Word(0))
+	pipeline.Register_File.Set(REG_DICT["fp"], pipeline.Memory.Load_Word(4))
+	pipeline.IFID.pc_out = pipeline.Memory.Load_Word(20)
+
+	# run
+	pipeline.pipelineLoop()
+
+	# verification
+	print "Mem[6] = %d" % pipeline.Memory.Load_Word(24)
+	print "Mem[7] = %d" % pipeline.Memory.Load_Word(28)
+	print "Mem[8] = %d" % pipeline.Memory.Load_Word(32)
+	print "Cycles = %d" % pipeline.CycleCount
