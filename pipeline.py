@@ -119,6 +119,7 @@ class Pipeline(object):
 			rt_value = self.Register_File.Get(self.IFID.instruction_out.rt)
 
 		# comparison branch hazards/detection
+		branch_here = False
 		if ((self.IFID.instruction_out.op == OP_DICT["BEQ"] or 
 			self.IFID.instruction_out.op == OP_DICT["BNE"]) and 
 		(((self.EXMEM.memControl_out.MemRead == 1) and 
@@ -129,7 +130,8 @@ class Pipeline(object):
 				or (self.IDEX.destinationReg_out == self.IFID.instruction_out.rs))) or
 		((self.IDEX.instruction_out.op > 3 and self.IDEX.instruction_out.op != OP_DICT["BEQ"] and
 		 self.IDEX.instruction_out.op != OP_DICT["BNE"]) and (self.IDEX.memControl_out.MemWrite == 0) 
-			and (self.IDEX.destinationReg_out == self.IFID.instruction_out.rt)))):
+			and ((self.IDEX.destinationReg_out == self.IFID.instruction_out.rt) or 
+				(self.IDEX.destinationReg_out == self.IFID.instruction_out.rs))))):
 			HW.Hazard_Detection_Mux(excTemp, memcTemp, wbcTemp, 1)
 			self.IFID.stall = 1
 		else:
@@ -138,6 +140,7 @@ class Pipeline(object):
 				or ((self.IFID.instruction_out.op == OP_DICT["BNE"]) and (rs_value != rt_value))):
 				self.IFID.flush()
 				self.PCSrc = 1
+				branch_here = True
 			else:
 				self.PCSrc = 0
 
@@ -162,7 +165,7 @@ class Pipeline(object):
 				(self.IFID.instruction_out.op == OP_DICT["BLEZ"] and rs_value <= 0)):
 				self.IFID.flush()
 				self.PCSrc = 1
-			else:
+			elif branch_here == False:
 				self.PCSrc = 0
 
 		# hazard detection
