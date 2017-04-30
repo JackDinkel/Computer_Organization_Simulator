@@ -1,7 +1,7 @@
 OP_DICT = {
   "NOP"   : 0x00, # tested
   "ADD"   : 0x00, # tested
-  "ADDU"  : 0x00,
+  "ADDU"  : 0x00, # tested
   "AND"   : 0x00, # tested
   "JR"    : 0x00, # tested
   "NOR"   : 0x00, # tested
@@ -9,14 +9,14 @@ OP_DICT = {
   "MOVN"  : 0x00, # tested
   "MOVZ"  : 0x00, # tested
   "SLT"   : 0x00, # tested
-  "SLTU"  : 0x00,
+  "SLTU"  : 0x00, # tested
   "SLL"   : 0x00, # tested
   "SRL"   : 0x00, # tested
   "SUB"   : 0x00, # tested
-  "SUBU"  : 0x00,
+  "SUBU"  : 0x00, # tested
   "XOR"   : 0x00, # tested
   "ADDI"  : 0x08, # tested
-  "ADDIU" : 0x09,
+  "ADDIU" : 0x09, # tested
   "ANDI"  : 0x0C, # tested
   "XORI"  : 0x0E, # tested
   "BEQ"   : 0x04, # tested

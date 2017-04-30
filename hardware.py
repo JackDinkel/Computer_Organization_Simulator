@@ -270,7 +270,7 @@ class Register_File(object):
     assert read_reg_1 >= 0 and read_reg_1 < 32, "read_reg_1 out of bounds: %d" % read_reg_1
     assert read_reg_2 >= 0 and read_reg_2 < 32, "read_reg_2 out of bounds: %d" % read_reg_2
     assert write_reg  >= 0 and write_reg  < 32, "write_reg out of bounds: %d" % write_reg
-    assert unsigned(write_data, 32) >= 0x0 and unsigned(write_data, 32) <= 0xFFFFFFFF, "write_data out of bounds: %s" % write_data
+    assert unsigned(write_data, 32) >= 0x0 and unsigned(write_data, 32) <= 0xFFFFFFFF, "write_data out of bounds: %s, %d" % (write_data, write_reg)
     assert RegWrite == 0 or RegWrite == 1, "RegWrite out of bounds: %s" % RegWrite
 
     if RegWrite:
@@ -289,7 +289,7 @@ def Sign_Extend(input_val, num_bits):
   return twos_val if twos_val >= 0 else (twos_val + 0x100000000)
 
 def Sign_Extend_Immediate(input_val):
-  if input_val >= 0xf000:
+  if input_val >= 0x8000:
     return -( (input_val ^ 0xffff) + 1)
   else:
     return input_val
@@ -341,6 +341,8 @@ def ALU(input1, input2, shamt, ALUControl):
     return input1 + input2, 0, 0
   elif ALUControl == ALU_DICT["ADDU"]:
     return unsigned(input1, 32) + unsigned(input2, 32), 0, 0 # TODO
+  elif ALUControl == ALU_DICT["ADDIU"]:
+    return unsigned(input1, 32) + input2, 0, 0
   elif ALUControl == ALU_DICT["SUB"]:
     input1 = twos_comp(input1, 32)
     input2 = twos_comp(input2, 32)

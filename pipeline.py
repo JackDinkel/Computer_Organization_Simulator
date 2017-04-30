@@ -7,32 +7,34 @@ from decode import *
 
 # test function
 def pipelineMain():
-	p = Pipeline()
+	p = Pipeline([])
 
 	# initialize pc to zero
 	p.IFID.pc_out = 0x00000000 
 
 	# initialize some code
-	p.Memory.Store_Word(0,  0x20080009) # addi t0 zero 0x0009
-	p.Memory.Store_Word(4,  0x8C0D0050) # lw t5, 0x50(zero)
-	p.Memory.Store_Word(8,  0x1DA00004) # bgtz t5 0x0004
-	p.Memory.Store_Word(12, 0x200b0009) # addi t3 zero 0x0009
-	p.Memory.Store_Word(28, 0x200a0009) # addi t2 zero 0x0009
-	p.Memory.Store_Word(32, 0x19400004) # blez t2 0x0004
-	p.Memory.Store_Word(36, 0x200c0009) # addi t4 zero 0x0009
-	p.Memory.Store_Word(40, 0x04000020) # bltz zero 0x20
-	p.Memory.Store_Word(44, 0x200EFFFF) # addi t6 zero 0xFFFF
-	p.Memory.Store_Word(48, 0x05C00020) # bltz t6 0x20
-	p.Memory.Store_Word(52, 0x00000000) # nop
-	p.Memory.Store_Word(56, 0x00000000) # nop
-	p.Memory.Store_Word(60, 0x00000000) # nop
-	p.Memory.Store_Word(64, 0x00000000) # nop
-	p.Memory.Store_Word(68, 0x00000000) # nop
-	p.Memory.Store_Word(80, 0x00000009) # data
-
+	p.Memory.Store_Word(0,   0x20080000) # addi t0 zero 0x0000
+	p.Memory.Store_Word(4,   0x20090044) # addi t1 zero 0x0044
+	p.Memory.Store_Word(8,   0x200a0009) # addi t2 zero 0x0009
+	p.Memory.Store_Word(12,  0x0148700A) # nop
+	p.Memory.Store_Word(16,  0x0148580B) # movn t3 t2 t0
+	p.Memory.Store_Word(20,  0x0149600B) # movn t4 t2 t1
+	p.Memory.Store_Word(24,  0x0149680A) # movz t5 t2 t1
+	p.Memory.Store_Word(28,  0x00000000) # movz t6 t2 t0
+	p.Memory.Store_Word(32,  0x00000000) # nop
+	p.Memory.Store_Word(36,  0x00000000) # nop
+	p.Memory.Store_Word(40,  0x00000000) # nop
+	p.Memory.Store_Word(44,  0x00000000) # nop
+	p.Memory.Store_Word(48,  0x00000000) # nop
+	p.Memory.Store_Word(52,  0x00000000) # nop
+	p.Memory.Store_Word(56,  0x00000000) # nop
+	p.Memory.Store_Word(60,  0x00000000) # nop
+	p.Memory.Store_Word(64,  0x00000000) # nop
+	p.Memory.Store_Word(68,  0x00000000) # nop
+	
 	# start pipeline
 	for i in range(1,20):
-		p.pipelineLoop()
+		p.pipelineCycle()
 
 	print "\nt0: %d" % p.Register_File.Get(REG_DICT["t0"])
 	print "t1: %d" % p.Register_File.Get(REG_DICT["t1"])
@@ -56,7 +58,7 @@ class Pipeline(object):
 	MEMWB = pipeline_reg.MEMWB()
 
 	# state elements
-	PC = HW.PC()
+	PC = 20
 	Memory = HW.Memory([], MEM_SIZE)
 	Register_File = HW.Register_File()
 
@@ -70,7 +72,7 @@ class Pipeline(object):
 		self.Memory = HW.Memory(program, self.MEM_SIZE)
 
 	def pipelineLoop(self):
-		while self.IFID.pc_out != 0 and self.CycleCount < 5000:
+		while self.PC != 0 and self.CycleCount < 2000000:
 			self.CycleCount = self.CycleCount + 1
 			self.IF()
 			self.WB()
@@ -78,18 +80,46 @@ class Pipeline(object):
 			self.EX()
 			self.MEM()
 			self.updateReg()
+			# self.displayRegisters()
+			# raw_input()
+
+	def pipelineCycle(self):
+		self.IF()
+		self.WB()
+		self.ID()
+		self.EX()
+		self.MEM()
+		self.updateReg()
+
+	def displayRegisters(self):
+		print "a0: %d" % self.Register_File.Get(REG_DICT["a0"])
+		print "a1: %d" % self.Register_File.Get(REG_DICT["a1"])
+		print "a2: %d" % self.Register_File.Get(REG_DICT["a2"])
+		print "a3: %d" % self.Register_File.Get(REG_DICT["a3"])
+		print "v0: %d" % self.Register_File.Get(REG_DICT["v0"])
+		print "v1: %d" % self.Register_File.Get(REG_DICT["v1"])
+		print "t0: %d" % self.Register_File.Get(REG_DICT["t0"])
+		print "t1: %d" % self.Register_File.Get(REG_DICT["t1"])
+		print "t2: %d" % self.Register_File.Get(REG_DICT["t2"])
+		print "ra: %d" % self.Register_File.Get(REG_DICT["ra"])
+
+	def displayResult(self):
+		print "Mem[6] = %d" % self.Memory.Load_Word(24)
+		print "Mem[7] = %d" % self.Memory.Load_Word(28)
+		print "Mem[8] = %d" % self.Memory.Load_Word(32)
+		print "Cycles = %d" % self.CycleCount
 
 	def IF(self):
 		instruction_temp = Instruction()
 
-		pc = HW.PC_Input_Mux(self.IFID.pc_out, self.IDEX.branchAddress_out, self.IDEX.jumpAddress_out, 
+		self.PC = HW.PC_Input_Mux(self.IFID.pc_out, self.IDEX.branchAddress_out, self.IDEX.jumpAddress_out, 
 			self.PCSrc, self.PCSrcJ)
 
-		instruction_temp.word = self.Memory.Instruction_Operate(pc, 0, 1, 0)
+		instruction_temp.word = self.Memory.Instruction_Operate(self.PC, 0, 1, 0)
 
-		print "%d, %s" % (pc, format(instruction_temp.word, '#04x'))
+		print "%d, %s" % (self.PC, format(instruction_temp.word, '#04x'))
 
-		self.IFID.set(instruction_temp, pc+4)
+		self.IFID.set(instruction_temp, self.PC+4)
 
 	def ID(self):
 		# decode
@@ -183,17 +213,14 @@ class Pipeline(object):
 
 		# calculate branch address
 		branch_addr_temp = HW.Shift_Left_2(sign_extend_imm) + self.IFID.pc_out
-		if branch_here:
-			print "imm: %d" % self.IFID.instruction_out.i_imm
-			print "pc: %d" % self.IFID.pc_out
-			print "sxim: %d" % sign_extend_imm
-			print "branch: %d" % branch_addr_temp
 
 		# jump detection
+		jump_here = False
 		if ((self.IFID.instruction_out.op == OP_DICT["J"]) or 
 			(self.IFID.instruction_out.op == OP_DICT["JAL"])):
-			self.IFID.flush()
+			#self.IFID.flush()
 			self.PCSrcJ = 1
+			jump_here = True
 			if self.IFID.instruction_out.op == OP_DICT["JAL"]:
 				self.Register_File.Set(REG_DICT["ra"], self.IFID.pc_out + 4)
 		else:
@@ -207,19 +234,27 @@ class Pipeline(object):
 		# jr detection/hazard/forwarding
 		if (self.IFID.instruction_out.op == OP_DICT["JR"] and 
 				self.IFID.instruction_out.funct == FUNCT_DICT["JR"]):
+			print "Jump Register! Cycles: %d" % self.CycleCount
+			print "%d, %s" % (self.IFID.pc_out, format(self.IFID.instruction_out.word, '#04x'))
+			# self.displayRegisters()
+			# self.displayResult()
+			raw_input()
 			if self.IDEX.destinationReg_out == self.IFID.instruction_out.rs: # hazard
 				self.IFID.stall = 1
 				self.PCSrcJ = 0
 			elif self.EXMEM.destinationReg_out == self.IFID.instruction_out.rs: # mem fwd
 				read_data_1 = self.EXMEM.ALUResult_out
-				self.IFID.flush()
+				#self.IFID.flush()
 				self.PCSrcJ = 1
 			elif self.MEMWB.destinationReg_out == self.IFID.instruction_out.rs: # wb fwd
 				read_data_1 = self.WriteData
-				self.IFID.flush()
+				#self.IFID.flush()
 				self.PCSrcJ = 1
 			else:
-				self.PCSrcJ = 0
+				#self.IFID.flush()
+				self.PCSrcJ = 1
+		elif jump_here == False:
+			self.PCSrcJ = 0
 
 		# calculate jump address
 		jump_addr_temp = HW.Calculate_Jump_Addr(self.IFID.instruction_out.j_imm, 
@@ -277,21 +312,21 @@ class Pipeline(object):
 
 if __name__ == "__main__":
 	# load the program
-	with open("exampleProgram.txt", "r") as f:
-		program = f.readlines()
-	program = [int(line.split(",")[0].strip(), 16) for line in program]
+	# with open("exampleProgram.txt", "r") as f:
+	# 	program = f.readlines()
+	# program = [int(line.split(",")[0].strip(), 16) for line in program]
 	
-	# initialize
-	pipeline = Pipeline(program)
-	pipeline.Register_File.Set(REG_DICT["sp"], pipeline.Memory.Load_Word(0))
-	pipeline.Register_File.Set(REG_DICT["fp"], pipeline.Memory.Load_Word(4))
-	pipeline.IFID.pc_out = pipeline.Memory.Load_Word(20)
+	# # initialize
+	# pipeline = Pipeline(program)
+	# pipeline.Register_File.Set(REG_DICT["sp"], pipeline.Memory.Load_Word(0))
+	# pipeline.Register_File.Set(REG_DICT["fp"], pipeline.Memory.Load_Word(4))
+	# pipeline.IFID.pc_out = pipeline.Memory.Load_Word(20)*4
 
-	# run
-	pipeline.pipelineLoop()
+	# # run
+	# pipeline.pipelineLoop()
 
-	# verification
-	print "Mem[6] = %d" % pipeline.Memory.Load_Word(24)
-	print "Mem[7] = %d" % pipeline.Memory.Load_Word(28)
-	print "Mem[8] = %d" % pipeline.Memory.Load_Word(32)
-	print "Cycles = %d" % pipeline.CycleCount
+	# # verification
+	# pipeline.displayRegisters()
+	# pipeline.displayResult()
+
+	pipelineMain()

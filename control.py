@@ -32,7 +32,8 @@ ALU_DICT = {
   "JAL"   : 29,
   "BEQ"   : 30,
   "BNE"   : 31,
-  "JR"    : 32
+  "JR"    : 32,
+  "ADDIU" : 33
 }
 
 class EXControl(object):
@@ -191,7 +192,7 @@ def updateControl(op, funct, exc, memc, wbc):
     memc.MemWrite = 0
     exc.ALUSrc    = 1
     wbc.RegWrite  = 1
-    exc.ALUOp     = ALU_DICT["ADDU"]
+    exc.ALUOp     = ALU_DICT["ADDIU"]
 
   elif op == 0x0A: # SLTI
     exc.RegDst    = 0
