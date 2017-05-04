@@ -80,6 +80,10 @@ class Direct_Cache(object):
     # For testing only
     self.__cache[index] = update
 
+  def Direct_Fetch(self, index):
+    # For testing only
+    return self.__cache[index]
+
 
   def display(self):
     print self.__cache
@@ -134,9 +138,12 @@ class Direct_Cache(object):
   def Load_Block_From_Memory(self, address):
     # Load the entire block to cache from memory
     tag, index, word_offset = self.Address_Decode(address)
+    block_address = self.Address_Encode(tag, index, 0, 0)
     block = []
     for word in xrange(self.num_words):
-      block.append(self.memory.Load_Word((address) + 4*word))
+      addr = block_address + (word * 4)
+      wd = self.memory.Load_Word(addr)
+      block.append(wd)
     assert len(block) == self.num_words
     self.__cache[index][2] = block
     self.__cache[index][1] = tag
@@ -149,49 +156,57 @@ class Direct_Cache(object):
   def Store_Block_To_Memory(self, address):
     # Store the entire block to memory from cache
     tag, index, word_offset = self.Address_Decode(address)
+    block_address = self.Address_Encode(tag, index, 0, 0)
     block = self.__cache[index][2]
     assert len(block) == self.num_words
     for word in xrange(self.num_words):
-      self.memory.Store_Word((address / 4) + word, block[word])
+      addr = block_address + (word * 4)
+      wd = block[word]
+      self.memory.Store_Word(addr, wd)
 
     # For testing...
     return block
     
     
-  def Store(address, data):
+  def Store(self, address, data):
     assert address >= 0 and address <= 0xFFFFFFFF, "Address out of bounds: %s" % address
-    tag, index, word_offset = Address_Decode(address)
+    tag, index, word_offset = self.Address_Decode(address)
 
     # Cache miss
-    if not Validate(index):
+    if not self.Validate(index):
+      print "Miss"
       self.Load_Block_From_Memory(address)
       return "miss" # TODO: Probably also need to return number of cycles penalized
 
     # Need to evict
-    if not Matching_Tags(index, tag):
-      if self.Write_Policy == "back":
+    if not self.Matching_Tags(index, tag):
+      print "Evict"
+      if self.write_policy == "back":
         # TODO: Should we do this always, or only when the block is dirty?
         # Pretty sure we only are supposed to do this when the block is dirty, but it doesn't hurt us to do it always
+        print "Writing back"
         evictee_tag = self.__cache[index][1]
-        evictee_address = self.Address_Encode(tag, index, word_offset, 0)
+        evictee_address = self.Address_Encode(evictee_tag, index, word_offset, 0)
         evictee_data = self.__cache[index][2]
         self.Store_Block_To_Memory(evictee_address)
 
-      self.Load_Block_From_Memory(tag, address)
+      self.Load_Block_From_Memory(address)
       # TODO: Do I return a fail status, or continue with the write?
 
     # Cache hit, write
+    print "hit"
     self.__cache[index][2][word_offset] = data
-    if self.Write_Policy == "through":
+    if self.write_policy == "through":
       self.Store_Block_To_Memory(address) # TODO: Do I need to use a buffer or something?
+    return 'hit'
 
 
-  def Load(address):
+  def Load(self, address):
     assert address >= 0 and address <= 0xFFFFFFFF, "Address out of bounds: %s" % address
-    tag, index, word_offset = Address_Decode(address)
+    tag, index, word_offset = self.Address_Decode(address)
 
     # Cache miss
-    if not Validate(index):
+    if not self.Validate(index):
       self.Load_Block_From_Memory(address)
       return "miss" # TODO: Probably also need to return number of cycles penalized
 

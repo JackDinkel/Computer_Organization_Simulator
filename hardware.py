@@ -205,6 +205,14 @@ class Memory(object):
 
     return read_data
 
+  def Direct_Update(self, address, data):
+    # For testing...
+    self.__data[address / 4] = data
+
+  def Direct_Fetch(self, address):
+    # For testing...
+    return self.__data[address / 4]
+
   def display(self):
     print self.__data
 
