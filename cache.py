@@ -168,9 +168,12 @@ class Direct_Cache(object):
     return block
     
     
-  def Store(self, address, data):
+  def Store(self, address, data, data_size = 'w'):
     assert address >= 0 and address <= 0xFFFFFFFF, "Address out of bounds: %s" % address
+    assert data_size == 'w' or data_size == 'h' or data_size == 'b'
     tag, index, word_offset = self.Address_Decode(address)
+    address_offset = address % 4
+    assert address_offset >= 0 and address_offset < 4, "offset out of bounds: %s" % address_offset
 
     # Cache miss
     if not self.Validate(index):
@@ -195,14 +198,56 @@ class Direct_Cache(object):
 
     # Cache hit, write
     print "hit"
-    self.__cache[index][2][word_offset] = data
+    if   data_size == 'w':
+      self.__cache[index][2][word_offset] = data
+
+    elif data_size == 'h':
+      assert address_offset >= 0 and address_offset < 4, "offset out of bounds: %s" % address_offset
+      shamt = address_offset * 8
+
+      # Get current word
+      word = self.Load_Word(address)
+      mask = ~(0xFFFF << shamt)
+      shifted_word = word & mask
+
+      # Update current word
+      shifted_data = data << shamt
+      word_to_write = shifted_word | shifted_data
+
+      # Write updated word
+      self.__data[index] = word_to_write
+      self.__cache[index][2][word_offset] = word_to_write
+
+    elif data_size == 'b':
+      assert address_offset == 0 or address_offset == 2, "offset out of bounds: %s" % address_offset
+      shamt = address_offset * 8
+
+      # Get current word
+      word = self.Load_Word(address)
+      mask = ~(0xFF << shamt)
+      shifted_word = word & mask
+
+      # Update current word
+      shifted_data = data << shamt
+      word_to_write = shifted_word | shifted_data
+
+      # Write updated word
+      self.__data[index] = word_to_write
+
+    else:
+      assert 0 == 1, "invalid data_size: %s" % data_size
+
+    self.__cache[index][2][word_offset] = data # NOTE: Actual store
     if self.write_policy == "through":
       self.Store_Block_To_Memory(address) # TODO: Do I need to use a buffer or something?
     return 'hit'
 
 
-  def Load(self, address):
+  def Load(self, address, data_size = 'w'):
     assert address >= 0 and address <= 0xFFFFFFFF, "Address out of bounds: %s" % address
+    assert data_size == 'w' or data_size == 'h' or data_size == 'hu' or data_size == 'b' or data_size == 'bu'
+    address_offset = address % 4
+    assert address_offset >= 0 and address_offset < 4, "offset out of bounds: %s" % address_offset
     tag, index, word_offset = self.Address_Decode(address)
 
     # Cache miss
@@ -211,7 +256,26 @@ class Direct_Cache(object):
       return "miss" # TODO: Probably also need to return number of cycles penalized
 
     # Cache hit, fetch word
-    return self.__cache[index][2][word_offset]
+    word = self.__cache[index][2][word_offset] # Load word
+    if   data_size == 'w':
+      return word
 
+    elif data_size == 'h':
+      assert address_offset == 0 or address_offset == 2, "offset out of bounds: %s" % address_offset
+      return Sign_Extend(mask.Get_Half(word, address_offset), 16)
 
+    elif data_size == 'hu':
+      assert address_offset == 0 or address_offset == 2, "offset out of bounds: %s" % address_offset
+      return mask.Get_Half(word, address_offset)
+
+    elif data_size == 'b':
+      assert address_offset >= 0 and address_offset < 4, "offset out of bounds: %s" % address_offset
+      return Sign_Extend(mask.Get_Byte(word, address_offset), 8)
+
+    elif data_size == 'bu':
+      assert address_offset >= 0 and address_offset < 4, "offset out of bounds: %s" % address_offset
+      return mask.Get_Byte(word, address_offset)
+
+    else:
+      assert 0 == 1, "invalid data_size: %s" % data_size
 

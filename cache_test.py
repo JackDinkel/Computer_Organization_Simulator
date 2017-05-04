@@ -183,3 +183,14 @@ def test_load():
   assert c.Load(29) == 'miss'
   assert c.Load(24) == 6
   assert c.Load(29) == 7
+
+
+@pytest.mark.skip
+def test_half():
+  pass
+
+
+@pytest.mark.skip
+def test_bytes():
+  pass
+

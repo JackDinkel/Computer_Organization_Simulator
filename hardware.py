@@ -103,7 +103,7 @@ class Memory(object):
     offset = address % 4
     assert len(self.__data) > 0, "Memory is empty!"
     assert index >= 0 and index < len(self.__data), "index out of bounds: %s in memory size %s" % (index, len(self.__data))
-    assert offset == 0 or offset == 2, "offset out of bounds: %s" % offset
+    assert offset >= 0 and offset < 4, "offset out of bounds: %s" % offset
     word = self.__data[index]
     return Sign_Extend(mask.Get_Byte(word, offset), 8)
 
@@ -112,6 +112,7 @@ class Memory(object):
     offset = address % 4
     assert len(self.__data) > 0, "Memory is empty!"
     assert index >= 0 and index < len(self.__data), "index out of bounds: %s in memory size %s" % (index, len(self.__data))
+    assert offset >= 0 and offset < 4, "offset out of bounds: %s" % offset
     word = self.__data[index]
     return mask.Get_Byte(word, offset)
     
@@ -158,13 +159,10 @@ class Memory(object):
     word = self.Load_Word(address)
     mask = ~(0xFF << shamt)
     shifted_word = word & mask
-    print "shifted word", hex(shifted_word)
 
     # Update current word
-    print "data", hex(data)
     shifted_data = data << shamt
     word_to_write = shifted_word | shifted_data
-    print "word to write", hex(word_to_write)
 
     # Write updated word
     self.__data[index] = word_to_write
