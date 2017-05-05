@@ -50,7 +50,7 @@ class WBControl(object):
   RegWrite = 0 # Set to 1 to write a new value to a register
   MemToReg = 0 # Control to Write_Back_MUX, 0 to use ALU result, 1 to use Memory
 
-__funct_dic = {
+funct_dic = {
   0x00 : ALU_DICT["SLL"],  # SLL
   0x02 : ALU_DICT["SRL"],  # SRL
   0x08 : ALU_DICT["J"],    # JR
@@ -84,6 +84,7 @@ def displayControl(exc, memc, wbc):
 def updateControl(op, funct, exc, memc, wbc):
   # TODO: Assert on bounds
   if op == 0x00: # RTYPE
+    print "rtype"
     exc.RegDst   = 1
     memc.Branch   = 0
     memc.Jump     = 0
@@ -93,7 +94,8 @@ def updateControl(op, funct, exc, memc, wbc):
     exc.ALUSrc1  = 0
     exc.ALUSrc2  = 0
     wbc.RegWrite = 1
-    exc.ALUOp    = self.__funct_dic[funct]
+    exc.ALUOp    = funct_dic[funct]
+    print exc.ALUOp
 
   elif op == 0x01: # BLTZ
     exc.RegDst   = 0

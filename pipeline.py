@@ -4,36 +4,47 @@ from register import REG_DICT
 from opcode import *
 from control import *
 from decode import *
+import register
+import memory_init
+import mux
+import alu
 
 #constants
-INSTR_MEM_SIZE = 100
-DATA_MEM_SIZE = 100
+CACHE_TYPE = "direct"
+CACHE_WRITE_POLICY = "through"
+DATA_CACHE_BLOCKS = 8
+DATA_CACHE_WORDS = 2 
+INSTR_CACHE_BLOCKS = 8
+INSTR_CACHE_WORDS = 2
+MEM_SIZE = 1200
 
 def pipelineMain():
-	p = Pipeline()
+	# initialize some code
+        mem_list = [
+	  0x20080009, # addi t0 zero 0x0009
+	  0x20090009, # addi t1 zero 0x0009
+	  0x08000011, # j 0x11
+	  0x00000000, # nop
+	  0x00000000, # nop
+	  0x00000000, # nop
+	  0x00000000, # nop
+	  0x200a0009, # addi t2 zero 0x0009
+	  0x200b0009, # addi t3 zero 0x0009
+	  0x00000000, # nop
+	  0x00000000, # nop
+	  0x00000000, # nop
+	  0x00000000, # nop
+	  0x00000000, # nop
+	  0x00000000, # nop
+	  0x00000000, # nop
+	  0x00000000, # nop
+	  0x00000000  # nop
+        ]
+
+	p = Pipeline(mem_list)
 
 	# initialize pc to zero
 	p.IFID.pc_out = 0x00000000 
-
-	# initialize some code
-	p.Instruction_Memory.Store_Word(0,   0x20080009) # addi t0 zero 0x0009
-	p.Instruction_Memory.Store_Word(4,   0x20090009) # addi t1 zero 0x0009
-	p.Instruction_Memory.Store_Word(8,   0x08000011) # j 0x11
-	p.Instruction_Memory.Store_Word(12,  0x00000000) # nop
-	p.Instruction_Memory.Store_Word(16,  0x00000000) # nop
-	p.Instruction_Memory.Store_Word(20,  0x00000000) # nop
-	p.Instruction_Memory.Store_Word(24,  0x00000000) # nop
-	p.Instruction_Memory.Store_Word(68,  0x200a0009) # addi t2 zero 0x0009
-	p.Instruction_Memory.Store_Word(72,  0x200b0009) # addi t3 zero 0x0009
-	p.Instruction_Memory.Store_Word(76,  0x00000000) # nop
-	p.Instruction_Memory.Store_Word(80,  0x00000000) # nop
-	p.Instruction_Memory.Store_Word(84,  0x00000000) # nop
-	p.Instruction_Memory.Store_Word(88,  0x00000000) # nop
-	p.Instruction_Memory.Store_Word(92,  0x00000000) # nop
-	p.Instruction_Memory.Store_Word(96,  0x00000000) # nop
-	p.Instruction_Memory.Store_Word(100,  0x00000000) # nop
-	p.Instruction_Memory.Store_Word(104,  0x00000000) # nop
-	p.Instruction_Memory.Store_Word(108, 0x00000000) # nop
 
 	# start pipeline
 	for i in range(1,15):
@@ -58,15 +69,34 @@ class Pipeline(object):
 	MEMWB = pipeline_reg.MEMWB()
 
 	# state elements
-	PC = HW.PC()
-	Instruction_Memory = HW.Instruction_Memory(INSTR_MEM_SIZE)
-	Register_File = HW.Register_File()
-	Data_Memory = HW.Data_Memory(DATA_MEM_SIZE)
+	PC = register.PC()
+        memory = memory_init.memory(CACHE_TYPE,
+                                    CACHE_WRITE_POLICY,
+                                    DATA_CACHE_BLOCKS,
+                                    DATA_CACHE_WORDS,
+                                    INSTR_CACHE_BLOCKS,
+                                    INSTR_CACHE_WORDS,
+                                    MEM_SIZE
+                                   )
+
+	Register_File = register.Register_File()
 
 	# non-register signals
 	WriteData = 0
 	PCSrc = 0
 	PCSrcJ = 0
+
+        def __init__(self, memory = []):
+          memory = memory_init.memory(CACHE_TYPE,
+                                      CACHE_WRITE_POLICY,
+                                      DATA_CACHE_BLOCKS,
+                                      DATA_CACHE_WORDS,
+                                      INSTR_CACHE_BLOCKS,
+                                      INSTR_CACHE_WORDS,
+                                      MEM_SIZE,
+                                      memory
+                                     )
+         
 
 	def pipelineLoop(self):
 		self.IF()
@@ -79,12 +109,12 @@ class Pipeline(object):
 	def IF(self):
 		instruction_temp = Instruction()
 
-		pc = HW.PC_Input_Mux(self.IFID.pc_out, self.IDEX.branchAddress_out, self.IDEX.jumpAddress_out, 
+		pc = mux.PC_Input_Mux(self.IFID.pc_out, self.IDEX.branchAddress_out, self.IDEX.jumpAddress_out, 
 			self.PCSrc, self.PCSrcJ)
 
-		instruction_temp.word = self.Instruction_Memory.Load_Word(pc)
+		instruction_temp.word = self.memory.Instruction_Operate(pc, 0, 1, 0)
 
-		print "%d, %d" % (pc, instruction_temp.word)
+		print "%s, %s" % (pc, instruction_temp.word)
 
 		self.IFID.set(instruction_temp, pc+4)
 
@@ -100,7 +130,7 @@ class Pipeline(object):
 			excTemp, memcTemp, wbcTemp)
 
 		# find dest register
-		dest_reg_temp = HW.Register_Input_Mux(self.IFID.instruction_out.rt, 
+		dest_reg_temp = mux.Register_Input_Mux(self.IFID.instruction_out.rt, 
 			self.IFID.instruction_out.rd, excTemp.RegDst)
 
 		# sign extend immediate
@@ -133,7 +163,7 @@ class Pipeline(object):
 		((self.IDEX.instruction_out.op > 3 and self.IDEX.instruction_out.op != OP_DICT["BEQ"] and
 		 self.IDEX.instruction_out.op != OP_DICT["BNE"]) and (self.IDEX.memControl_out.MemWrite == 0) 
 			and (self.IDEX.destinationReg_out == self.IFID.instruction_out.rt)))):
-			HW.Hazard_Detection_Mux(excTemp, memcTemp, wbcTemp, 1)
+			mux.Hazard_Detection_Mux(excTemp, memcTemp, wbcTemp, 1)
 			self.IFID.stall = 1
 		else:
 			# branch detection
@@ -147,7 +177,7 @@ class Pipeline(object):
 		# hazard detection
 		data_hazard = HW.Hazard_Detection_Unit(self.IDEX.memControl_out.MemRead, self.IDEX.instruction_out.rt, 
 			self.IFID.instruction_out.rs, self.IFID.instruction_out.rt)
-		HW.Hazard_Detection_Mux(excTemp, memcTemp, wbcTemp, data_hazard)
+		mux.Hazard_Detection_Mux(excTemp, memcTemp, wbcTemp, data_hazard)
 		if data_hazard == 1:
 			self.IFID.stall = 1
 
@@ -181,11 +211,13 @@ class Pipeline(object):
 			self.MEMWB.wbControl_out.RegWrite)
 
 		# ALU
-		alu_input_1 = HW.ALU_Reg_A_Mux(self.IDEX.readData1_out, self.WriteData, self.EXMEM.ALUResult_out, forwardA)
-		alu_input_2 = HW.ALU_Reg_B_MUX(self.IDEX.readData2_out, self.WriteData, self.EXMEM.ALUResult_out, forwardB)
-		alu_mux_temp = HW.ALU_Input_Mux(alu_input_2, self.IDEX.signExtendImm_out, 
-			self.IDEX.exControl_out.ALUSrc)
-		alu_res_temp = HW.ALU(alu_input_1, alu_mux_temp, self.IDEX.instruction_out.shamt, 
+		alu_input_1 = mux.ALU_Reg_A_Mux(self.IDEX.readData1_out, self.WriteData, self.EXMEM.ALUResult_out, forwardA)
+		alu_input_2 = mux.ALU_Reg_B_MUX(self.IDEX.readData2_out, self.WriteData, self.EXMEM.ALUResult_out, forwardB)
+		alu_mux1_temp = mux.ALU_Input_Mux1(alu_input_1, alu_input_2, 
+			self.IDEX.exControl_out.ALUSrc1)
+		alu_mux2_temp = mux.ALU_Input_Mux2(alu_input_2, self.IDEX.signExtendImm_out, 
+			self.IDEX.exControl_out.ALUSrc2)
+		alu_res_temp = alu.ALU(alu_mux1_temp, alu_mux2_temp, self.IDEX.instruction_out.shamt, 
 			self.IDEX.exControl_out.ALUOp)
 
 		# inputs to EXMEM register
@@ -195,7 +227,7 @@ class Pipeline(object):
 
 	def MEM(self):
 		# operate on data memory
-		read_data_temp = self.Data_Memory.Operate(self.EXMEM.ALUResult_out, self.EXMEM.readData2_out, 
+		read_data_temp = self.memory.Data_Operate(self.EXMEM.ALUResult_out, self.EXMEM.readData2_out, 
 			self.EXMEM.memControl_out.MemRead, self.EXMEM.memControl_out.MemWrite, 
 			self.EXMEM.instruction_out.op)
 
@@ -205,7 +237,7 @@ class Pipeline(object):
 
 	def WB(self):
 		# update WriteData
-		self.WriteData = HW.Write_Back_Mux(self.MEMWB.readData_out, self.MEMWB.ALUResult_out, 
+		self.WriteData = mux.Write_Back_Mux(self.MEMWB.readData_out, self.MEMWB.ALUResult_out, 
 			self.MEMWB.wbControl_out.MemToReg)
 
 	def updateReg(self):
