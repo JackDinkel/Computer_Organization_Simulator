@@ -6,11 +6,9 @@ from control import ALU_DICT
 from register import REG_DICT
 import register
 import cache
-from util import *
-import mux
+from globals import *
 import memory
 import memory_init
-import alu
 
 
 
@@ -33,13 +31,13 @@ def test_twos_comp():
 
 
 def test_mux():
-  assert mux.MUX("hi", 123, 0) == "hi"
-  assert mux.MUX("hi", 123, 1) == 123
+  assert HW.MUX("hi", 123, 0) == "hi"
+  assert HW.MUX("hi", 123, 1) == 123
 
 
 def test_PC():
   v = 0
-  mypc = register.PC()
+  mypc = HW.PC()
   assert mypc.Get() == v
 
   v = 400
@@ -87,7 +85,7 @@ def test_Instruction_Decode():
 
 
 def test_Register_File():
-  f = register.Register_File()
+  f = HW.Register_File()
 
   a1 = REG_DICT["a1"]
   t1 = REG_DICT["t1"]
@@ -143,24 +141,24 @@ def test_ALU():
   shamt = 3
 
   #assert alu.ALU(input1, input2, 0, ALU_DICT["X"])     == (0, 0) # TODO
-  assert alu.ALU(input1, input2, 0, ALU_DICT["AND"])   == (input1 & input2, 0, 0)
-  assert alu.ALU(input1, input2, 0, ALU_DICT["OR"])    == (input1 | input2, 0, 0)
-  assert alu.ALU(input1, input2, 0, ALU_DICT["ADD"])   == (input1 + input2, 0, 0)
-  assert alu.ALU(input1, input2, 0, ALU_DICT["ADDU"])  == (input1 + input2, 0, 0)
-  assert alu.ALU(input1, input2, 0, ALU_DICT["SUB"])   == (input1 - input2, 0, 0)
-  assert alu.ALU(input1, input2, 0, ALU_DICT["SUBU"])  == (input1 - input2, 0, 0)
-  assert alu.ALU(input1, input2,shamt,ALU_DICT["SLL"]) == (input2 << shamt, 0, 0)
-  assert alu.ALU(input1, input2,shamt,ALU_DICT["SRL"]) == (input2 >> shamt, 0, 0)
-  assert alu.ALU(input1, input2, 0, ALU_DICT["SLT"])   == (0, 0, 1) # TODO
-  assert alu.ALU(input1, input2, 0, ALU_DICT["SLTU"])  == (0, 0, 1) # TODO
-  assert alu.ALU(input1, input2, 0, ALU_DICT["NOT"])   == (~input1, 0, 0)
-  assert alu.ALU(input1, input2, 0, ALU_DICT["LW"])    == (7, 0, 0)
-  assert alu.ALU(input1, input2, 0, ALU_DICT["LBU"])   == (7, 0, 0)
-  assert alu.ALU(input1, input2, 0, ALU_DICT["LHU"])   == (7, 0, 0)
-  assert alu.ALU(input1, input2, 0, ALU_DICT["SW"])    == (7, 0, 0)
-  assert alu.ALU(input1, input2, 0, ALU_DICT["SH"])    == (7, 0, 0)
-  assert alu.ALU(input1, input2, 0, ALU_DICT["SB"])    == (7, 0, 0)
-  assert alu.ALU(input1, input2, 0, ALU_DICT["NOR"])   == (~(input1 | input2), 0, 0) # TODO
+  assert HW.ALU(input1, input2, 0, ALU_DICT["AND"])   == (input1 & input2, 0, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["OR"])    == (input1 | input2, 0, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["ADD"])   == (input1 + input2, 0, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["ADDU"])  == (input1 + input2, 0, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["SUB"])   == (input1 - input2, 0, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["SUBU"])  == (input1 - input2, 0, 0)
+  assert HW.ALU(input1, input2,shamt,ALU_DICT["SLL"]) == (input2 << shamt, 0, 0)
+  assert HW.ALU(input1, input2,shamt,ALU_DICT["SRL"]) == (input2 >> shamt, 0, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["SLT"])   == (0, 0, 1) # TODO
+  assert HW.ALU(input1, input2, 0, ALU_DICT["SLTU"])  == (0, 0, 1) # TODO
+  assert HW.ALU(input1, input2, 0, ALU_DICT["NOT"])   == (~input1, 0, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["LW"])    == (7, 0, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["LBU"])   == (7, 0, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["LHU"])   == (7, 0, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["SW"])    == (7, 0, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["SH"])    == (7, 0, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["SB"])    == (7, 0, 0)
+  assert HW.ALU(input1, input2, 0, ALU_DICT["NOR"])   == (~(input1 | input2), 0, 0) # TODO
 
 
 ######## Memory/Cache #####################################################
