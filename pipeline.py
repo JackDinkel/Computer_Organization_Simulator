@@ -13,25 +13,25 @@ def pipelineMain():
 	p.IFID.pc_out = 0x00000000 
 
 	# initialize some code
-	p.Memory.Store_Word(0,   0x20080000) # addi t0 zero 0x0000
-	p.Memory.Store_Word(4,   0x20090044) # addi t1 zero 0x0044
-	p.Memory.Store_Word(8,   0x200a0009) # addi t2 zero 0x0009
-	p.Memory.Store_Word(12,  0x0148700A) # nop
-	p.Memory.Store_Word(16,  0x0148580B) # movn t3 t2 t0
-	p.Memory.Store_Word(20,  0x0149600B) # movn t4 t2 t1
-	p.Memory.Store_Word(24,  0x0149680A) # movz t5 t2 t1
-	p.Memory.Store_Word(28,  0x00000000) # movz t6 t2 t0
-	p.Memory.Store_Word(32,  0x00000000) # nop
-	p.Memory.Store_Word(36,  0x00000000) # nop
-	p.Memory.Store_Word(40,  0x00000000) # nop
-	p.Memory.Store_Word(44,  0x00000000) # nop
-	p.Memory.Store_Word(48,  0x00000000) # nop
-	p.Memory.Store_Word(52,  0x00000000) # nop
-	p.Memory.Store_Word(56,  0x00000000) # nop
-	p.Memory.Store_Word(60,  0x00000000) # nop
-	p.Memory.Store_Word(64,  0x00000000) # nop
-	p.Memory.Store_Word(68,  0x00000000) # nop
-	
+	p.Memory.Store_Word(0,  0x00000000) # nop
+	p.Memory.Store_Word(4,  0x00000000) # nop
+	p.Memory.Store_Word(8,  0x00000000) # nop
+	p.Memory.Store_Word(12, 0x00000000) # nop
+	p.Memory.Store_Word(16, 0x006C1821) # addu v1 v1 t4
+	p.Memory.Store_Word(20, 0x00831821) # addu v1 a0 v1
+	p.Memory.Store_Word(24, 0x00000000) # nop
+	p.Memory.Store_Word(28, 0x00000000) # nop
+	p.Memory.Store_Word(32, 0x00000000) # nop
+	p.Memory.Store_Word(36, 0x00000000) # nop
+	p.Memory.Store_Word(40, 0x00000000) # nop
+	p.Memory.Store_Word(44, 0x00000000) # nop
+	p.Memory.Store_Word(48, 0x00000000) # nop
+	p.Memory.Store_Word(52, 0x00000000) # nop
+	p.Memory.Store_Word(56, 0x00000000) # nop
+	p.Memory.Store_Word(60, 0x00000000) # nop
+	p.Memory.Store_Word(64, 0x00000000) # nop
+	p.Memory.Store_Word(68, 0x00000000) # nop
+
 	# start pipeline
 	for i in range(1,20):
 		p.pipelineCycle()
@@ -47,6 +47,7 @@ def pipelineMain():
 	print "t8: %d" % p.Register_File.Get(REG_DICT["t8"])
 	print "t9: %d" % p.Register_File.Get(REG_DICT["t9"])
 	print "ra: %d" % p.Register_File.Get(REG_DICT["ra"])
+	print "v0: %d" % p.Register_File.Get(REG_DICT["v0"])
 
 class Pipeline(object):
 	MEM_SIZE = 1200
@@ -117,7 +118,13 @@ class Pipeline(object):
 
 		instruction_temp.word = self.Memory.Instruction_Operate(self.PC, 0, 1, 0)
 
-		print "%d, %s" % (self.PC, format(instruction_temp.word, '#04x'))
+		if self.CycleCount > 369410:
+			print "%d, %s" % (self.PC, format(instruction_temp.word, '#04x'))
+			print "v1: %d" % self.Register_File.Get(REG_DICT["v1"])
+			print "t4: %d" % self.Register_File.Get(REG_DICT["t4"])
+			print "t6: %d" % self.Register_File.Get(REG_DICT["t6"])
+			print "t9: %d" % self.Register_File.Get(REG_DICT["t9"])
+			print "a0: %d" % self.Register_File.Get(REG_DICT["a0"])
 
 		self.IFID.set(instruction_temp, self.PC+4)
 
@@ -174,7 +181,7 @@ class Pipeline(object):
 			# branch detection
 			if (((self.IFID.instruction_out.op == OP_DICT["BEQ"]) and (rs_value == rt_value)) 
 				or ((self.IFID.instruction_out.op == OP_DICT["BNE"]) and (rs_value != rt_value))):
-				self.IFID.flush()
+				#self.IFID.flush()
 				self.PCSrc = 1
 				branch_here = True
 			else:
@@ -199,7 +206,7 @@ class Pipeline(object):
 			if ((self.IFID.instruction_out.op == OP_DICT["BGTZ"] and rs_value > 0) or 
 				(self.IFID.instruction_out.op == OP_DICT["BLTZ"] and rs_value < 0) or 
 				(self.IFID.instruction_out.op == OP_DICT["BLEZ"] and rs_value <= 0)):
-				self.IFID.flush()
+				#self.IFID.flush()
 				self.PCSrc = 1
 			elif branch_here == False:
 				self.PCSrc = 0
@@ -235,7 +242,8 @@ class Pipeline(object):
 		if (self.IFID.instruction_out.op == OP_DICT["JR"] and 
 				self.IFID.instruction_out.funct == FUNCT_DICT["JR"]):
 			print "Jump Register! Cycles: %d" % self.CycleCount
-			print "%d, %s" % (self.IFID.pc_out, format(self.IFID.instruction_out.word, '#04x'))
+			print "%d, %s" % (self.IFID.pc_out/4, format(self.IFID.instruction_out.word, '#04x'))
+			print "zero?: %d" % (self.Register_File.Get(REG_DICT["zero"]))
 			# self.displayRegisters()
 			# self.displayResult()
 			raw_input()
@@ -311,22 +319,25 @@ class Pipeline(object):
 		self.MEMWB.update()
 
 if __name__ == "__main__":
-	# load the program
-	# with open("exampleProgram.txt", "r") as f:
-	# 	program = f.readlines()
-	# program = [int(line.split(",")[0].strip(), 16) for line in program]
-	
-	# # initialize
-	# pipeline = Pipeline(program)
-	# pipeline.Register_File.Set(REG_DICT["sp"], pipeline.Memory.Load_Word(0))
-	# pipeline.Register_File.Set(REG_DICT["fp"], pipeline.Memory.Load_Word(4))
-	# pipeline.IFID.pc_out = pipeline.Memory.Load_Word(20)*4
+	program = True
+	if program:
+		# load the program
+		with open("program1.txt", "r") as f:
+			program = f.readlines()
+		program = [int(line.split(",")[0].strip(), 16) for line in program]
+		
+		# initialize
+		pipeline = Pipeline(program)
+		pipeline.Register_File.Set(REG_DICT["sp"], pipeline.Memory.Load_Word(0))
+		pipeline.Register_File.Set(REG_DICT["fp"], pipeline.Memory.Load_Word(4))
+		pipeline.IFID.pc_out = pipeline.Memory.Load_Word(20)*4
 
-	# # run
-	# pipeline.pipelineLoop()
+		# run
+		pipeline.pipelineLoop()
 
-	# # verification
-	# pipeline.displayRegisters()
-	# pipeline.displayResult()
+		# verification
+		pipeline.displayRegisters()
+		pipeline.displayResult()
 
-	pipelineMain()
+	else:
+		pipelineMain()

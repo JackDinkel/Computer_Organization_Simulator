@@ -78,7 +78,7 @@ class Memory(object):
   def Load_Word(self, address):
     index = address / 4
     assert len(self.__data) > 0, "Memory is empty!"
-    assert index >= 0 and index < len(self.__data), "index out of bounds: %s in memory size %s" % (index, len(self.__data))
+    assert index >= 0 and index < len(self.__data), "index out of bounds: %i in memory size %i" % (index, len(self.__data))
     return self.__data[index]
 
   def Load_Half(self, address):
@@ -273,7 +273,7 @@ class Register_File(object):
     assert unsigned(write_data, 32) >= 0x0 and unsigned(write_data, 32) <= 0xFFFFFFFF, "write_data out of bounds: %s, %d" % (write_data, write_reg)
     assert RegWrite == 0 or RegWrite == 1, "RegWrite out of bounds: %s" % RegWrite
 
-    if RegWrite:
+    if RegWrite and write_reg != 0:
       self.__register_list[write_reg].Set(write_data)
 
     read_data_1 = self.__register_list[read_reg_1].Get()
