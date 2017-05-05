@@ -1,4 +1,5 @@
 import hardware as HW
+import mask
 
 class Memory(object):
   # NOTE: We decided to model this as a combination of word addressable and byte addressable
@@ -7,13 +8,17 @@ class Memory(object):
   # Inside this class, memory is word addressed, so each list element stores a single word
   # Simply divide the address by 4 to get the index, and % by 4 to get the offset
 
-  # A list of all instructions
   __data = []
 
-  def __init__(self, contents, size):
+  def __init__(self, size, contents = []):
       self.__data = contents
       for _ in xrange(size - len(self.__data)):
         self.__data.append(0)
+
+
+  def Update(self, size, contents = []):
+    self.__init__(size, contents)
+
 
   def __del__(self):
     self.__data = []
@@ -73,11 +78,11 @@ class Memory(object):
 
   def Store(self, address, data, data_type = 'w'):
     index = address / 4
-    offset = address % 4
+    address_offset = address % 4
     assert len(self.__data) > 0, "Memory is empty!"
     assert index >= 0 and index < len(self.__data), "index out of bounds: %s in memory size %s" % (index, len(self.__data))
     assert HW.unsigned(data, 32) >= 0x0 and HW.unsigned(data, 32) <= 0xFFFFFFFF, "data out of bounds: %s" % data
-    assert offset >= 0 and offset < 4
+    assert address_offset >= 0 and address_offset < 4
     assert data_type == 'w' or data_type == 'h' or data_type == 'b'
 
     # Store word
@@ -108,22 +113,22 @@ class Memory(object):
     if MemRead:
       assert Op >= 12 and Op <= 16, "Op out of bounds: %s" % Op
       if Op == ALU_DICT["LW"]:
-        read_data = Memory.Load_Word(self, address)
+        read_data = Memory.Load(address, 'w')
       if Op == ALU_DICT["LBU"]:
-        read_data = Memory.Load_Byte_Unsigned(self, address)
+        read_data = Memory.Load(address, 'bu')
       if Op == ALU_DICT["LHU"]:
-        read_data = Memory.Load_Half_Unsigned(self, address)
+        read_data = Memory.Load(address, 'hu')
 
     if MemWrite:
       assert Op >= 17 and Op <= 19, "Op out of bounds: %s" % Op
       if Op == ALU_DICT["SB"]:
-        Memory.Store_Byte(self, address, write_data)
+        Memory.Store(address, write_data, 'b')
       if Op == ALU_DICT["SH"]:
-        Memory.Store_Half(self, address, write_data)
+        Memory.Store(address, write_data, 'h')
       if Op == ALU_DICT["SW"]:
-        Memory.Store_Word(self, address, write_data)
+        Memory.Store(address, write_data, 'w')
       if Op == ALU_DICT["SLT"]:
-        Memory.Store_Word(self, address, write_data)
+        Memory.Store(address, write_data, 'w')
 
     return read_data
 
@@ -132,9 +137,9 @@ class Memory(object):
     read_data = 0
 
     if MemRead:
-      read_data = Memory.Load_Word(self, address)
+      read_data = Memory.Load(address)
     if MemWrite:
-      Memory.Store_Word(self, address, write_data)
+      Memory.Store(address, write_data)
 
     return read_data
 

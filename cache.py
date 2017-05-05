@@ -51,12 +51,11 @@ Each block is a list of three things, valid, tag, data
 import mask
 from globals import *
 import hardware as HW
-import memory
 from math import log, ceil
 
 class Direct_Cache(object):
 
-  def __init__(self, blocks, words, writePolicy, mem_contents, mem_size):
+  def __init__(self, blocks, words, writePolicy, memory):
     assert writePolicy == "through" or writePolicy == "back", "invalid write policy: %s" % writePolicy
 
     # Set attributes
@@ -68,12 +67,12 @@ class Direct_Cache(object):
     self.__data = [ [0, 0, [0 for _ in range(self.num_words)] ] for _ in xrange(self.num_blocks) ]
 
     # Initialize memory
-    self.memory = memory.Memory(mem_contents, mem_size)
+    self.memory = memory
 
 
-  def Update(self, blocks, words, writePolicy, mem_contents, mem_size):
+  def Update(self, blocks, words, writePolicy, memory):
     # Call to change the rebuild a new empty cache
-    self.__init__(blocks, words, writePolicy, mem_contents, mem_size)
+    self.__init__(blocks, words, writePolicy, memory)
 
 
   def Direct_Update(self, index, update):

@@ -132,7 +132,6 @@ def ALU_Input_Mux2(register, sign_extended, ALUSrc2):
 
 
 def ALU(input1, input2, shamt, ALUControl):
-  # TODO: How does this interface with ALU Control? What is the zero Zero line on page 265?
   if   ALUControl == ALU_DICT["J"]:
     return 0, 1, 0
   elif ALUControl == ALU_DICT["AND"]:
