@@ -51,6 +51,7 @@ Each block is a list of three things, valid, tag, data
 import mask
 from globals import *
 import hardware as HW
+import memory
 from math import log, ceil
 
 class Direct_Cache(object):
@@ -67,7 +68,7 @@ class Direct_Cache(object):
     self.__data = [ [0, 0, [0 for _ in range(self.num_words)] ] for _ in xrange(self.num_blocks) ]
 
     # Initialize memory
-    self.memory = HW.Memory(mem_contents, mem_size)
+    self.memory = memory.Memory(mem_contents, mem_size)
 
 
   def Update(self, blocks, words, writePolicy, mem_contents, mem_size):
@@ -142,7 +143,7 @@ class Direct_Cache(object):
     block = []
     for word in xrange(self.num_words):
       addr = block_address + (word * 4)
-      wd = self.memory.Load_Word(addr)
+      wd = self.memory.Load(addr)
       block.append(wd)
     assert len(block) == self.num_words
     self.__data[index][2] = block
@@ -162,24 +163,10 @@ class Direct_Cache(object):
     for word in xrange(self.num_words):
       addr = block_address + (word * 4)
       wd = block[word]
-      self.memory.Store_Word(addr, wd)
+      self.memory.Store(addr, wd)
 
     # For testing...
     return block
-
-
-  def Put_Word(self, index, word_offset, word):
-    # Translates word to big endian and stores in cache
-    b3, b2, b1, b0 = mask.Split_Word(word)
-    big_endian_word = mask.Cat_Word(b0, b1, b2, b3)
-    self.__data[index][2][word_offset] = big_endian_word
-
-
-  def Fetch_Word(self, index, word_offset):
-    # Fetches word from cache and translates it from big endian
-    big_endian_word = self.__data[index][2][word_offset]
-    b0, b1, b2, b3 = mask.Split_Word(big_endian_word)
-    return mask.Cat_Word(b3, b2, b1, b0)
     
     
   def Store(self, address, data, data_type = 'w'):
@@ -222,36 +209,16 @@ class Direct_Cache(object):
     # Write a half
     elif data_type == 'h':
       assert address_offset == 0 or address_offset == 2, "offset out of bounds: %s" % address_offset
-      shamt = address_offset * 8
 
-      # Get current word
       word = self.__data[index][2][word_offset]
-      mask = ~(0xFFFF << shamt)
-      shifted_word = word & mask
-
-      # Update current word
-      shifted_data = data << shamt
-      word_to_write = shifted_word | shifted_data
-
-      # Write updated word
-      self.__data[index][2][word_offset] = word_to_write
+      self.__data[index][2][word_offset] = mask.Insert_Half(word, data, address_offset)
 
     # Write a byte
     elif data_type == 'b':
       assert address_offset >= 0 and address_offset < 4, "offset out of bounds: %s" % address_offset
-      shamt = address_offset * 8
 
-      # Get current word
       word = self.__data[index][2][word_offset]
-      mask = ~(0xFF << shamt)
-      shifted_word = word & mask
-
-      # Update current word
-      shifted_data = data << shamt
-      word_to_write = shifted_word | shifted_data
-
-      # Write updated word
-      self.__data[index][2][word_offset] = word_to_write
+      self.__data[index][2][word_offset] = mask.Insert_Byte(word, data, address_offset)
 
     else:
       assert 0 == 1, "invalid data_type: %s" % data_type

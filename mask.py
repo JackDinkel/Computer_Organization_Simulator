@@ -48,30 +48,56 @@ def Get_Bits_25_0(number):
 ###### Byte, Half, and Word masking ##############################################
 
 def Offset_Mask(offset, bits):
-  # Generate a mask for a number of bits, left shifted by offset
-  mask = 2**bits - 1
+  # Generate a mask for a number of bits, right shifted by offset bytes
+  mask = (2**bits - 1) << (32 - bits)
   for _ in xrange(offset):
-    mask = (mask << 8) | mask
+    mask = logical_rshift(mask, 8)
   return mask
 
 
 def Get_Bits(number, offset, num_bits):
-  # Get num_bits bits from a word
+  # Get num_bits bits from a word, offsets count from the left
   assert number >= 0x0 and number <= 0xFFFFFFFF, "input out of range: %s" % number
   assert offset >= 0   and offset <= 3, "offset out of range: %s" % offset
   assert num_bits >= 0 and num_bits < 32, "num_bits out of range: %s" % num_bits
-  return logical_rshift( number & Offset_Mask(offset, num_bits), offset * 8 )
+  return logical_rshift( number & Offset_Mask(offset, num_bits), 32 - num_bits  - (offset * 8) )
+
+
+def Get_Reverse_Bits(number, offset, num_bits):
+  # Get everything except num_bits bits from a word, offsets count from the left
+  assert number >= 0x0 and number <= 0xFFFFFFFF, "input out of range: %s" % number
+  assert offset >= 0   and offset <= 3, "offset out of range: %s" % offset
+  assert num_bits >= 0 and num_bits < 32, "num_bits out of range: %s" % num_bits
+  return number & ~Offset_Mask(offset, num_bits)
 
 
 def Get_Byte(number, offset):
-  # Get a byte from a word
+  # Get a byte from a word, offsets count from the left
   assert number >= 0x0 and number <= 0xFFFFFFFF, "input out of range: %s" % number
   assert offset >= 0   and offset <= 3, "offset out of range: %s" % offset
   return Get_Bits(number, offset, 8)
 
 
+def Insert_Byte(original, byte, offset):
+  # Insert a byte into an existing number
+  assert original >= 0x0 and original <= 0xFFFFFFFF, "original out of range: %s" % original
+  assert offset >= 0   and offset <= 3, "offset out of range: %s" % offset
+  assert byte >= 0x0 and byte <= 0xFF, "byte out of range: %s" % byte
+
+  return Get_Reverse_Bits(original, offset, 8) | ( byte << 32 - 8 - (offset * 8) )
+
+
+def Insert_Half(original, half, offset):
+  # Insert a half into an existing number
+  assert original >= 0x0 and original <= 0xFFFFFFFF, "original out of range: %s" % original
+  assert offset == 0 or offset == 2, "offset out of range: %s" % offset
+  assert half >= 0x0 and half <= 0xFFFF, "half out of range: %s" % half
+
+  return Get_Reverse_Bits(original, offset, 16) | ( half << 32 - 16 - (offset * 8) )
+
+
 def Get_Half(number, offset):
-  # Get a half word from a word
+  # Get a half word from a word, offsets count from the left
   assert number >= 0x0 and number <= 0xFFFFFFFF, "input out of range: %s" % number
   assert offset == 0 or offset == 2, "offset out of range: %s" % offset
   return Get_Bits(number, offset, 16)

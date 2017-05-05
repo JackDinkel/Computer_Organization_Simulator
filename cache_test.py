@@ -194,12 +194,12 @@ def test_half():
   assert c.Direct_Fetch(0) == [1, 0, [0xffffffff, 1]]
 
   assert c.Store(0, 0x0811, 'h') == 'hit'
-  assert c.Direct_Fetch(0) == [1, 0, [0xffff0811, 1]]
+  assert c.Direct_Fetch(0) == [1, 0, [0x0811ffff, 1]]
 
   assert c.Store(2, 0xf321, 'h') == 'hit'
-  assert c.Direct_Fetch(0) == [1, 0, [0xf3210811, 1]]
+  assert c.Direct_Fetch(0) == [1, 0, [0x0811f321, 1]]
 
-  assert c.Load(0) == HW.Sign_Extend(0xf3210811, 32)
+  assert c.Load(0) == HW.Sign_Extend(0x0811f321, 32)
   assert c.Load(0, 'hu') == 0x0811
   assert c.Load(2, 'hu') == 0xf321
   assert c.Load(0, 'h') == HW.Sign_Extend(0x0811, 16)
@@ -215,18 +215,18 @@ def test_bytes():
   assert c.Direct_Fetch(0) == [1, 0, [0xffffffff, 1]]
 
   assert c.Store(0, 0x08, 'b') == 'hit'
-  assert c.Direct_Fetch(0) == [1, 0, [0xffffff08, 1]]
+  assert c.Direct_Fetch(0) == [1, 0, [0x08ffffff, 1]]
 
   assert c.Store(2, 0x55, 'b') == 'hit'
-  assert c.Direct_Fetch(0) == [1, 0, [0xff55ff08, 1]]
+  assert c.Direct_Fetch(0) == [1, 0, [0x08ff55ff, 1]]
 
   assert c.Store(1, 0x21, 'b') == 'hit'
-  assert c.Direct_Fetch(0) == [1, 0, [0xff552108, 1]]
+  assert c.Direct_Fetch(0) == [1, 0, [0x082155ff, 1]]
 
   assert c.Store(3, 0x88, 'b') == 'hit'
-  assert c.Direct_Fetch(0) == [1, 0, [0x88552108, 1]]
+  assert c.Direct_Fetch(0) == [1, 0, [0x08215588, 1]]
 
-  assert c.Load(0) == HW.Sign_Extend(0x88552108, 32)
+  assert c.Load(0) == HW.Sign_Extend(0x08215588, 32)
   assert c.Load(0, 'bu') == 0x08
   assert c.Load(1, 'bu') == 0x21
   assert c.Load(2, 'bu') == 0x55

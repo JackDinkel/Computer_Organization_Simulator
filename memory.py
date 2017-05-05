@@ -1,4 +1,4 @@
-
+import hardware as HW
 
 class Memory(object):
   # NOTE: We decided to model this as a combination of word addressable and byte addressable
@@ -33,7 +33,7 @@ class Memory(object):
     print self.__data
 
 
-  def Load(self, address, data_type):
+  def Load(self, address, data_type = 'w'):
     index  = address / 4
     address_offset = address % 4
     assert len(self.__data) > 0, "Memory is empty!"
@@ -45,12 +45,12 @@ class Memory(object):
 
     # Fetch word
     if   data_type == 'w':
-      return Sign_Extend(word, 32)
+      return HW.Sign_Extend(word, 32)
 
     # Fetch signed half
     elif data_type == 'h':
       assert address_offset == 0 or address_offset == 2, "offset out of bounds: %s" % address_offset
-      return Sign_Extend(mask.Get_Half(word, address_offset), 16)
+      return HW.Sign_Extend(mask.Get_Half(word, address_offset), 16)
 
     # Fetch unsigned half
     elif data_type == 'hu':
@@ -60,7 +60,7 @@ class Memory(object):
     # Fetch signed byte
     elif data_type == 'b':
       assert address_offset >= 0 and address_offset < 4, "offset out of bounds: %s" % address_offset
-      return Sign_Extend(mask.Get_Byte(word, address_offset), 8)
+      return HW.Sign_Extend(mask.Get_Byte(word, address_offset), 8)
 
     # Fetch unsigned byte
     elif data_type == 'bu':
@@ -71,12 +71,12 @@ class Memory(object):
       assert 0 == 1, "invalid data_type: %s" % data_type
 
 
-  def Store(self, address, data, data_type):
+  def Store(self, address, data, data_type = 'w'):
     index = address / 4
     offset = address % 4
     assert len(self.__data) > 0, "Memory is empty!"
     assert index >= 0 and index < len(self.__data), "index out of bounds: %s in memory size %s" % (index, len(self.__data))
-    assert unsigned(data, 32) >= 0x0 and unsigned(data, 32) <= 0xFFFFFFFF, "data out of bounds: %s" % data
+    assert HW.unsigned(data, 32) >= 0x0 and HW.unsigned(data, 32) <= 0xFFFFFFFF, "data out of bounds: %s" % data
     assert offset >= 0 and offset < 4
     assert data_type == 'w' or data_type == 'h' or data_type == 'b'
 
@@ -88,35 +88,15 @@ class Memory(object):
     elif data_type == 'h':
       assert address_offset == 0 or address_offset == 2, "offset out of bounds: %s" % address_offset
 
-      # Get current word
-      shamt = offset * 8
-      word = self.Load_Word(address)
-      mask = ~(0xFFFF << shamt)
-      shifted_word = word & mask
-
-      # Update current word
-      shifted_data = data << shamt
-      word_to_write = shifted_word | shifted_data
-
-      # Write updated word
-      self.__data[index] = word_to_write
+      word = self.__data[index]
+      self.__data[index] = mask.Insert_Half(word, data, address_offset)
 
     # Store byte
     elif data_type == 'b':
       assert address_offset >= 0 and address_offset < 4, "offset out of bounds: %s" % address_offset
 
-      # Get current word
-      shamt = offset * 8
-      word = self.Load_Word(address)
-      mask = ~(0xFF << shamt)
-      shifted_word = word & mask
-
-      # Update current word
-      shifted_data = data << shamt
-      word_to_write = shifted_word | shifted_data
-
-      # Write updated word
-      self.__data[index] = word_to_write
+      word = self.__data[index]
+      self.__data[index] = mask.Insert_Byte(word, data, address_offset)
 
     else:
       assert 0 == 1, "invalid data_type: %s" % data_type
