@@ -6,8 +6,8 @@ from control import *
 from decode import *
 import register
 import memory_init
-import mux
-import alu
+#import mux
+#import alu
 
 #constants
 CACHE_TYPE = "direct"
@@ -82,7 +82,7 @@ class Pipeline(object):
                                     MEM_SIZE
                                    )
 
-	Register_File = register.Register_File()
+	Register_File = HW.Register_File()
 	PC = 20
 
 	# non-register signals
@@ -137,15 +137,15 @@ class Pipeline(object):
 		print "ra: %d" % self.Register_File.Get(REG_DICT["ra"])
 
 	def displayResult(self):
-		print "Mem[6] = %d" % self.Memory.Load_Word(24)
-		print "Mem[7] = %d" % self.Memory.Load_Word(28)
-		print "Mem[8] = %d" % self.Memory.Load_Word(32)
+		print "Mem[6] = %d" % self.Memory.Direct_Load(24)
+		print "Mem[7] = %d" % self.Memory.Direct_Load(28)
+		print "Mem[8] = %d" % self.Memory.Direct_Load(32)
 		print "Cycles = %d" % self.CycleCount
 
 	def IF(self):
 		instruction_temp = Instruction()
 
-		self.PC = mux.PC_Input_Mux(self.IFID.pc_out, self.IDEX.branchAddress_out, self.IDEX.jumpAddress_out, 
+		self.PC = HW.PC_Input_Mux(self.IFID.pc_out, self.IDEX.branchAddress_out, self.IDEX.jumpAddress_out, 
 			self.PCSrc, self.PCSrcJ)
 
 		instruction_temp.word = self.Memory.Instruction_Operate(self.PC, 0, 1, 0)
@@ -172,7 +172,7 @@ class Pipeline(object):
 			excTemp, memcTemp, wbcTemp)
 
 		# find dest register
-		dest_reg_temp = mux.Register_Input_Mux(self.IFID.instruction_out.rt, 
+		dest_reg_temp = HW.Register_Input_Mux(self.IFID.instruction_out.rt, 
 			self.IFID.instruction_out.rd, excTemp.RegDst)
 
 		# sign extend immediate
@@ -207,7 +207,7 @@ class Pipeline(object):
 		 self.IDEX.instruction_out.op != OP_DICT["BNE"]) and (self.IDEX.memControl_out.MemWrite == 0) 
 			and ((self.IDEX.destinationReg_out == self.IFID.instruction_out.rt) or 
 				(self.IDEX.destinationReg_out == self.IFID.instruction_out.rs))))):
-			mux.Hazard_Detection_Mux(excTemp, memcTemp, wbcTemp, 1)
+			HW.Hazard_Detection_Mux(excTemp, memcTemp, wbcTemp, 1)
 			self.IFID.stall = 1
 		else:
 			# branch detection
@@ -231,7 +231,7 @@ class Pipeline(object):
 		 self.IDEX.instruction_out.op != OP_DICT["BLTZ"] and 
 		 self.IDEX.instruction_out.op != OP_DICT["BLEZ"]) and (self.IDEX.memControl_out.MemWrite == 0) 
 			and (self.IDEX.destinationReg_out == self.IFID.instruction_out.rs)))):
-			mux.Hazard_Detection_Mux(excTemp, memcTemp, wbcTemp, 1)
+			HW.Hazard_Detection_Mux(excTemp, memcTemp, wbcTemp, 1)
 			self.IFID.stall = 1
 		else:
 			# branch detection
@@ -246,7 +246,7 @@ class Pipeline(object):
 		# hazard detection
 		data_hazard = HW.Hazard_Detection_Unit(self.IDEX.memControl_out.MemRead, self.IDEX.instruction_out.rt, 
 			self.IFID.instruction_out.rs, self.IFID.instruction_out.rt)
-		mux.Hazard_Detection_Mux(excTemp, memcTemp, wbcTemp, data_hazard)
+		HW.Hazard_Detection_Mux(excTemp, memcTemp, wbcTemp, data_hazard)
 		if data_hazard == 1:
 			self.IFID.stall = 1
 
@@ -311,13 +311,13 @@ class Pipeline(object):
 			self.MEMWB.wbControl_out.RegWrite)
 
 		# ALU
-		alu_input_1 = mux.ALU_Reg_A_Mux(self.IDEX.readData1_out, self.WriteData, self.EXMEM.ALUResult_out, forwardA)
-		alu_input_2 = mux.ALU_Reg_B_MUX(self.IDEX.readData2_out, self.WriteData, self.EXMEM.ALUResult_out, forwardB)
-		alu_mux1_temp = mux.ALU_Input_Mux1(alu_input_1, alu_input_2, 
+		alu_input_1 = HW.ALU_Reg_A_Mux(self.IDEX.readData1_out, self.WriteData, self.EXMEM.ALUResult_out, forwardA)
+		alu_input_2 = HW.ALU_Reg_B_MUX(self.IDEX.readData2_out, self.WriteData, self.EXMEM.ALUResult_out, forwardB)
+		alu_mux1_temp = HW.ALU_Input_Mux1(alu_input_1, alu_input_2, 
 			self.IDEX.exControl_out.ALUSrc1)
-		alu_mux2_temp = mux.ALU_Input_Mux2(alu_input_2, self.IDEX.signExtendImm_out, 
+		alu_mux2_temp = HW.ALU_Input_Mux2(alu_input_2, self.IDEX.signExtendImm_out, 
 			self.IDEX.exControl_out.ALUSrc2)
-		alu_res_temp = alu.ALU(alu_mux1_temp, alu_mux2_temp, self.IDEX.instruction_out.shamt, 
+		alu_res_temp = HW.ALU(alu_mux1_temp, alu_mux2_temp, self.IDEX.instruction_out.shamt, 
 			self.IDEX.exControl_out.ALUOp)
 
 		# conditional moves
@@ -343,7 +343,7 @@ class Pipeline(object):
 
 	def WB(self):
 		# update WriteData
-		self.WriteData = mux.Write_Back_Mux(self.MEMWB.readData_out, self.MEMWB.ALUResult_out, 
+		self.WriteData = HW.Write_Back_Mux(self.MEMWB.readData_out, self.MEMWB.ALUResult_out, 
 			self.MEMWB.wbControl_out.MemToReg)
 
 	def updateReg(self):
