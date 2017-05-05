@@ -108,7 +108,7 @@ class Register_File(object):
     assert RegWrite == 0 or RegWrite == 1, "RegWrite out of bounds: %s" % RegWrite
 
     if RegWrite and write_reg != 0:
-      self.__register_list[write_reg].Update(write_data)
+      self.__register_list[write_reg].Set(write_data)
 
     read_data_1 = self.__register_list[read_reg_1].Get()
     read_data_2 = self.__register_list[read_reg_2].Get()

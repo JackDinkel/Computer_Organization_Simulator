@@ -1,7 +1,6 @@
 import hardware as HW
 import decode
 import pytest
-import single_cycle
 import mask
 from control import ALU_DICT
 from register import REG_DICT
@@ -46,10 +45,10 @@ def test_PC():
 
 
 def test_Instruction_Decode():
-  decoder = decode.Decoder()
+  decoder = decode.Instruction
 
-  instr = 0x00000000
-  decoder.decode(instr)
+  decoder.word = 0x00000000
+  decode.decodeInstruction(decoder)
   assert decoder.op == 0x0
   assert decoder.rs == 0x0
   assert decoder.rt == 0x0
@@ -60,8 +59,8 @@ def test_Instruction_Decode():
   assert decoder.j_imm == 0x0
 
   # subu t4,t5,t3
-  instr = 0x01ab6023 
-  decoder.decode(instr)
+  decoder.word = 0x01ab6023 
+  decode.decodeInstruction(decoder)
   assert decoder.op == 0x0
   assert decoder.rs == 0xD
   assert decoder.rt == 0xB
@@ -70,16 +69,16 @@ def test_Instruction_Decode():
   assert decoder.funct == 0x23
 
   # addiu t5,a1,-1
-  instr = 0x24adffff 
-  decoder.decode(instr)
+  decoder.word = 0x24adffff 
+  decode.decodeInstruction(decoder)
   assert decoder.op == 0x9
   assert decoder.rs == 0x5
   assert decoder.rt == 0xD
   assert decoder.i_imm == 0xFFFF
 
   # jal 120
-  instr = 0x0c000078 
-  decoder.decode(instr)
+  decoder.word = 0x0c000078 
+  decode.decodeInstruction(decoder)
   assert decoder.op == 0x3
   assert decoder.j_imm == 0x78
 
