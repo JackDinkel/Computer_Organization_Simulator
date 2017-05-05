@@ -53,168 +53,6 @@ class Register(object):
     return self.__value
 
 
-class Memory(object):
-  # NOTE: We decided to model this as a combination of word addressable and byte addressable
-  # This is a divergence from lec 21, but I leave it here for reference
-  # Outside this class, everything is byte addressable, as normal
-  # Inside this class, memory is word addressed, so each list element stores a single word
-  # Simply divide the address by 4 to get the index, and % by 4 to get the offset
-
-  # A list of all instructions
-  __data = []
-
-  #def __init__(self, size):
-  #  self.__data = [0 for _ in xrange(size/4)]
-
-  def __init__(self, contents, size):
-      self.__data = contents
-      for _ in xrange(size - len(self.__data)):
-        self.__data.append(0)
-
-  def __del__(self):
-    self.__data = []
-
-  def Load_Word(self, address):
-    index = address / 4
-    assert len(self.__data) > 0, "Memory is empty!"
-    assert index >= 0 and index < len(self.__data), "index out of bounds: %s in memory size %s" % (index, len(self.__data))
-    return self.__data[index]
-
-  def Load_Half(self, address):
-    index  = address / 4
-    offset = address % 4
-    assert len(self.__data) > 0, "Memory is empty!"
-    assert index >= 0 and index < len(self.__data), "index out of bounds: %s in memory size %s" % (index, len(self.__data))
-    assert offset == 0 or offset == 2, "offset out of bounds: %s" % offset
-    word = self.__data[index]
-    return Sign_Extend(mask.Get_Half(word, offset), 16)
-
-  def Load_Half_Unsigned(self, address):
-    index  = address / 4
-    offset = address % 4
-    assert len(self.__data) > 0, "Memory is empty!"
-    assert index >= 0 and index < len(self.__data), "index out of bounds: %s in memory size %s" % (index, len(self.__data))
-    assert offset == 0 or offset == 2, "offset out of bounds: %s" % offset
-    word = self.__data[index]
-    return mask.Get_Half(word, offset)
-
-  def Load_Byte(self, address):
-    index  = address / 4
-    offset = address % 4
-    assert len(self.__data) > 0, "Memory is empty!"
-    assert index >= 0 and index < len(self.__data), "index out of bounds: %s in memory size %s" % (index, len(self.__data))
-    assert offset >= 0 and offset < 4, "offset out of bounds: %s" % offset
-    word = self.__data[index]
-    return Sign_Extend(mask.Get_Byte(word, offset), 8)
-
-  def Load_Byte_Unsigned(self, address):
-    index  = address / 4
-    offset = address % 4
-    assert len(self.__data) > 0, "Memory is empty!"
-    assert index >= 0 and index < len(self.__data), "index out of bounds: %s in memory size %s" % (index, len(self.__data))
-    assert offset >= 0 and offset < 4, "offset out of bounds: %s" % offset
-    word = self.__data[index]
-    return mask.Get_Byte(word, offset)
-    
-  def Store_Word(self, address, data):
-    index = address / 4
-    assert len(self.__data) > 0, "Memory is empty!"
-    assert index >= 0 and index < len(self.__data), "index out of bounds: %s in memory size %s" % (index, len(self.__data))
-    assert unsigned(data, 32) >= 0x0 and unsigned(data, 32) <= 0xFFFFFFFF, "data out of bounds: %s" % data
-    self.__data[index] = data
-
-  def Store_Half(self, address, data):
-    index = address / 4
-    offset = address % 4
-    assert len(self.__data) > 0, "Memory is empty!"
-    assert index >= 0 and index < len(self.__data), "index out of bounds: %s in memory size %s" % (index, len(self.__data))
-    assert unsigned(data, 32) >= 0x0 and unsigned(data, 32) <= 0xFFFFFFFF, "data out of bounds: %s" % data
-    assert offset == 0 or offset == 2, "offset out of bounds: %s" % offset
-
-    shamt = offset * 8
-
-    # Get current word
-    word = self.Load_Word(address)
-    mask = ~(0xFFFF << shamt)
-    shifted_word = word & mask
-
-    # Update current word
-    shifted_data = data << shamt
-    word_to_write = shifted_word | shifted_data
-
-    # Write updated word
-    self.__data[index] = word_to_write
-
-  def Store_Byte(self, address, data):
-    index = address / 4
-    offset = address % 4
-    assert len(self.__data) > 0, "Memory is empty!"
-    assert index >= 0 and index < len(self.__data), "index out of bounds: %s in memory size %s" % (index, len(self.__data))
-    assert unsigned(data, 32) >= 0x0 and unsigned(data, 32) <= 0xFFFFFFFF, "data out of bounds: %s" % data
-    assert offset >= 0 and offset < 4
-
-    shamt = offset * 8
-
-    # Get current word
-    word = self.Load_Word(address)
-    mask = ~(0xFF << shamt)
-    shifted_word = word & mask
-
-    # Update current word
-    shifted_data = data << shamt
-    word_to_write = shifted_word | shifted_data
-
-    # Write updated word
-    self.__data[index] = word_to_write
-
-  def Data_Operate(self, address, write_data, MemRead, MemWrite, Op):
-    read_data = 0
-
-    if MemRead:
-      assert Op >= 12 and Op <= 16, "Op out of bounds: %s" % Op
-      if Op == ALU_DICT["LW"]:
-        read_data = Memory.Load_Word(self, address)
-      if Op == ALU_DICT["LBU"]:
-        read_data = Memory.Load_Byte_Unsigned(self, address)
-      if Op == ALU_DICT["LHU"]:
-        read_data = Memory.Load_Half_Unsigned(self, address)
-
-    if MemWrite:
-      assert Op >= 17 and Op <= 19, "Op out of bounds: %s" % Op
-      if Op == ALU_DICT["SB"]:
-        Memory.Store_Byte(self, address, write_data)
-      if Op == ALU_DICT["SH"]:
-        Memory.Store_Half(self, address, write_data)
-      if Op == ALU_DICT["SW"]:
-        Memory.Store_Word(self, address, write_data)
-      if Op == ALU_DICT["SLT"]:
-        Memory.Store_Word(self, address, write_data)
-
-    return read_data
-
-  def Instruction_Operate(self, address, write_data, MemRead, MemWrite):
-    read_data = 0
-
-
-    if MemRead:
-      read_data = Memory.Load_Word(self, address)
-    if MemWrite:
-      Memory.Store_Word(self, address, write_data)
-
-    return read_data
-
-  def Direct_Update(self, address, data):
-    # For testing...
-    self.__data[address / 4] = data
-
-  def Direct_Fetch(self, address):
-    # For testing...
-    return self.__data[address / 4]
-
-  def display(self):
-    print self.__data
-
-
 
 ## Instruction Fetch ##
 def PC_Input_Mux(incremented, branch_addr, jump_addr, Branch, Jump):
@@ -228,12 +66,6 @@ class PC(Register):
   pass
   # TODO: Do we need a bunch of addwords if this isn't initialized to 0?
   # TODO: If so, does that need to happen for the memories as well?
-
-
-
-#class Instruction_Memory(Memory):
-#  def __init__(self, size):
-#    Memory.__init__(self, size)
 
 
 
@@ -390,23 +222,6 @@ def Calculate_Jump_Addr(unshifted_num, next_pc):
 
 def Address_Adder(next_pc, shifted_num):
   return next_pc + shifted_num
-
-
-
-## Memory Access ##
-#class Data_Memory(Memory):
-#  def __init__(self, size):
-#    Memory.__init__(self, size)
-#
-#  def Operate(self, address, write_data, MemRead, MemWrite):
-#    read_data = 0
-#
-#    if MemRead:
-#      read_data = Memory.Load_Word(self, address)
-#    if MemWrite:
-#      Memory.Store_Word(self, address, write_data)
-#
-#    return read_data
 
 
 

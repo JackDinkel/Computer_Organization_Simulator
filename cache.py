@@ -64,11 +64,10 @@ class Direct_Cache(object):
     self.write_policy = writePolicy
 
     # Build the empty cache
-    self.__cache = [ [0, 0, [0 for _ in range(self.num_words)] ] for _ in xrange(self.num_blocks) ]
+    self.__data = [ [0, 0, [0 for _ in range(self.num_words)] ] for _ in xrange(self.num_blocks) ]
 
     # Initialize memory
     self.memory = HW.Memory(mem_contents, mem_size)
-
 
 
   def Update(self, blocks, words, writePolicy, mem_contents, mem_size):
@@ -78,15 +77,16 @@ class Direct_Cache(object):
 
   def Direct_Update(self, index, update):
     # For testing only
-    self.__cache[index] = update
+    self.__data[index] = update
+
 
   def Direct_Fetch(self, index):
     # For testing only
-    return self.__cache[index]
+    return self.__data[index]
 
 
   def display(self):
-    print self.__cache
+    print self.__data
 
 
   def Address_Decode(self, address):
@@ -127,12 +127,12 @@ class Direct_Cache(object):
 
   def Validate(self, index):
     # Return 1 if address is a hit, 0 if miss
-    return self.__cache[index][0]
+    return self.__data[index][0]
 
 
   def Matching_Tags(self, index, tag):
     # Return 1 if tags match, 0 if not
-    return self.__cache[index][1] == tag
+    return self.__data[index][1] == tag
 
 
   def Load_Block_From_Memory(self, address):
@@ -145,9 +145,9 @@ class Direct_Cache(object):
       wd = self.memory.Load_Word(addr)
       block.append(wd)
     assert len(block) == self.num_words
-    self.__cache[index][2] = block
-    self.__cache[index][1] = tag
-    self.__cache[index][0] = 1
+    self.__data[index][2] = block
+    self.__data[index][1] = tag
+    self.__data[index][0] = 1
 
     # For testing...
     return block
@@ -157,7 +157,7 @@ class Direct_Cache(object):
     # Store the entire block to memory from cache
     tag, index, word_offset = self.Address_Decode(address)
     block_address = self.Address_Encode(tag, index, 0, 0)
-    block = self.__cache[index][2]
+    block = self.__data[index][2]
     assert len(block) == self.num_words
     for word in xrange(self.num_words):
       addr = block_address + (word * 4)
@@ -166,47 +166,66 @@ class Direct_Cache(object):
 
     # For testing...
     return block
+
+
+  def Put_Word(self, index, word_offset, word):
+    # Translates word to big endian and stores in cache
+    b3, b2, b1, b0 = mask.Split_Word(word)
+    big_endian_word = mask.Cat_Word(b0, b1, b2, b3)
+    self.__data[index][2][word_offset] = big_endian_word
+
+
+  def Fetch_Word(self, index, word_offset):
+    # Fetches word from cache and translates it from big endian
+    big_endian_word = self.__data[index][2][word_offset]
+    b0, b1, b2, b3 = mask.Split_Word(big_endian_word)
+    return mask.Cat_Word(b3, b2, b1, b0)
     
     
-  def Store(self, address, data, data_size = 'w'):
-    assert address >= 0 and address <= 0xFFFFFFFF, "Address out of bounds: %s" % address
-    assert data_size == 'w' or data_size == 'h' or data_size == 'b'
-    tag, index, word_offset = self.Address_Decode(address)
+  def Store(self, address, data, data_type = 'w'):
+    def write_back(index, word_offset):
+      # Write block to memory
+      evictee_tag = self.__data[index][1]
+      evictee_address = self.Address_Encode(evictee_tag, index, word_offset, 0)
+      evictee_data = self.__data[index][2]
+      self.Store_Block_To_Memory(evictee_address)
+
+    def evict_and_load(address):
+      # Evict old block and load new block from memory
+      tag, index, word_offset = self.Address_Decode(address)
+      # Write old block to memory if necessary
+      if self.write_policy == "back":
+        write_back(index, word_offset)
+      self.Load_Block_From_Memory(address)
+
     address_offset = address % 4
+    assert address >= 0 and address <= 0xFFFFFFFF, "Address out of bounds: %s" % address
+    assert data_type == 'w' or data_type == 'h' or data_type == 'b'
     assert address_offset >= 0 and address_offset < 4, "offset out of bounds: %s" % address_offset
+
+    tag, index, word_offset = self.Address_Decode(address)
 
     # Cache miss
     if not self.Validate(index):
-      print "Miss"
       self.Load_Block_From_Memory(address)
       return "miss" # TODO: Probably also need to return number of cycles penalized
 
     # Need to evict
     if not self.Matching_Tags(index, tag):
-      print "Evict"
-      if self.write_policy == "back":
-        # TODO: Should we do this always, or only when the block is dirty?
-        # Pretty sure we only are supposed to do this when the block is dirty, but it doesn't hurt us to do it always
-        print "Writing back"
-        evictee_tag = self.__cache[index][1]
-        evictee_address = self.Address_Encode(evictee_tag, index, word_offset, 0)
-        evictee_data = self.__cache[index][2]
-        self.Store_Block_To_Memory(evictee_address)
+      evict_and_load(address)
 
-      self.Load_Block_From_Memory(address)
-      # TODO: Do I return a fail status, or continue with the write?
+    ## Cache hit, write
+    # Write a word
+    if   data_type == 'w':
+      self.__data[index][2][word_offset] = data
 
-    # Cache hit, write
-    print "hit"
-    if   data_size == 'w':
-      self.__cache[index][2][word_offset] = data
-
-    elif data_size == 'h':
-      assert address_offset >= 0 and address_offset < 4, "offset out of bounds: %s" % address_offset
+    # Write a half
+    elif data_type == 'h':
+      assert address_offset == 0 or address_offset == 2, "offset out of bounds: %s" % address_offset
       shamt = address_offset * 8
 
       # Get current word
-      word = self.Load_Word(address)
+      word = self.__data[index][2][word_offset]
       mask = ~(0xFFFF << shamt)
       shifted_word = word & mask
 
@@ -215,15 +234,15 @@ class Direct_Cache(object):
       word_to_write = shifted_word | shifted_data
 
       # Write updated word
-      self.__data[index] = word_to_write
-      self.__cache[index][2][word_offset] = word_to_write
+      self.__data[index][2][word_offset] = word_to_write
 
-    elif data_size == 'b':
-      assert address_offset == 0 or address_offset == 2, "offset out of bounds: %s" % address_offset
+    # Write a byte
+    elif data_type == 'b':
+      assert address_offset >= 0 and address_offset < 4, "offset out of bounds: %s" % address_offset
       shamt = address_offset * 8
 
       # Get current word
-      word = self.Load_Word(address)
+      word = self.__data[index][2][word_offset]
       mask = ~(0xFF << shamt)
       shifted_word = word & mask
 
@@ -232,22 +251,24 @@ class Direct_Cache(object):
       word_to_write = shifted_word | shifted_data
 
       # Write updated word
-      self.__data[index] = word_to_write
+      self.__data[index][2][word_offset] = word_to_write
 
     else:
-      assert 0 == 1, "invalid data_size: %s" % data_size
+      assert 0 == 1, "invalid data_type: %s" % data_type
 
-    self.__cache[index][2][word_offset] = data # NOTE: Actual store
+    # Write through
     if self.write_policy == "through":
-      self.Store_Block_To_Memory(address) # TODO: Do I need to use a buffer or something?
+      self.Store_Block_To_Memory(address)
+
     return 'hit'
 
 
-  def Load(self, address, data_size = 'w'):
-    assert address >= 0 and address <= 0xFFFFFFFF, "Address out of bounds: %s" % address
-    assert data_size == 'w' or data_size == 'h' or data_size == 'hu' or data_size == 'b' or data_size == 'bu'
+  def Load(self, address, data_type = 'w'):
     address_offset = address % 4
     assert address_offset >= 0 and address_offset < 4, "offset out of bounds: %s" % address_offset
+    assert address >= 0 and address <= 0xFFFFFFFF, "Address out of bounds: %s" % address
+    assert data_type == 'w' or data_type == 'h' or data_type == 'hu' or data_type == 'b' or data_type == 'bu'
+
     tag, index, word_offset = self.Address_Decode(address)
 
     # Cache miss
@@ -255,27 +276,33 @@ class Direct_Cache(object):
       self.Load_Block_From_Memory(address)
       return "miss" # TODO: Probably also need to return number of cycles penalized
 
-    # Cache hit, fetch word
-    word = self.__cache[index][2][word_offset] # Load word
-    if   data_size == 'w':
-      return word
+    ## Cache hit, fetch
+    word = self.__data[index][2][word_offset] # Load word
 
-    elif data_size == 'h':
+    # Fetch word
+    if   data_type == 'w':
+      return HW.Sign_Extend(word, 32)
+
+    # Fetch signed half
+    elif data_type == 'h':
       assert address_offset == 0 or address_offset == 2, "offset out of bounds: %s" % address_offset
-      return Sign_Extend(mask.Get_Half(word, address_offset), 16)
+      return HW.Sign_Extend(mask.Get_Half(word, address_offset), 16)
 
-    elif data_size == 'hu':
+    # Fetch unsigned half
+    elif data_type == 'hu':
       assert address_offset == 0 or address_offset == 2, "offset out of bounds: %s" % address_offset
       return mask.Get_Half(word, address_offset)
 
-    elif data_size == 'b':
+    # Fetch signed byte
+    elif data_type == 'b':
       assert address_offset >= 0 and address_offset < 4, "offset out of bounds: %s" % address_offset
-      return Sign_Extend(mask.Get_Byte(word, address_offset), 8)
+      return HW.Sign_Extend(mask.Get_Byte(word, address_offset), 8)
 
-    elif data_size == 'bu':
+    # Fetch unsigned byte
+    elif data_type == 'bu':
       assert address_offset >= 0 and address_offset < 4, "offset out of bounds: %s" % address_offset
       return mask.Get_Byte(word, address_offset)
 
     else:
-      assert 0 == 1, "invalid data_size: %s" % data_size
+      assert 0 == 1, "invalid data_type: %s" % data_type
 

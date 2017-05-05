@@ -1,6 +1,7 @@
 import pytest
 import cache
 from globals import *
+import hardware as HW
 
 def test_decode():
   c = cache.Direct_Cache(8, 1, "through", [], 0)
@@ -185,12 +186,53 @@ def test_load():
   assert c.Load(29) == 7
 
 
-@pytest.mark.skip
 def test_half():
-  pass
+  mem = 16
+  c = cache.Direct_Cache(8, 2, "through", range(mem), mem)
+  assert c.Store(3, 0xffffffff) == 'miss'
+  assert c.Store(3, 0xffffffff) == 'hit'
+  assert c.Direct_Fetch(0) == [1, 0, [0xffffffff, 1]]
+
+  assert c.Store(0, 0x0811, 'h') == 'hit'
+  assert c.Direct_Fetch(0) == [1, 0, [0xffff0811, 1]]
+
+  assert c.Store(2, 0xf321, 'h') == 'hit'
+  assert c.Direct_Fetch(0) == [1, 0, [0xf3210811, 1]]
+
+  assert c.Load(0) == HW.Sign_Extend(0xf3210811, 32)
+  assert c.Load(0, 'hu') == 0x0811
+  assert c.Load(2, 'hu') == 0xf321
+  assert c.Load(0, 'h') == HW.Sign_Extend(0x0811, 16)
+  assert c.Load(2, 'h') == HW.Sign_Extend(0xf321, 16)
+  
 
 
-@pytest.mark.skip
 def test_bytes():
-  pass
+  mem = 16
+  c = cache.Direct_Cache(8, 2, "through", range(mem), mem)
+  assert c.Store(3, 0xffffffff) == 'miss'
+  assert c.Store(3, 0xffffffff) == 'hit'
+  assert c.Direct_Fetch(0) == [1, 0, [0xffffffff, 1]]
+
+  assert c.Store(0, 0x08, 'b') == 'hit'
+  assert c.Direct_Fetch(0) == [1, 0, [0xffffff08, 1]]
+
+  assert c.Store(2, 0x55, 'b') == 'hit'
+  assert c.Direct_Fetch(0) == [1, 0, [0xff55ff08, 1]]
+
+  assert c.Store(1, 0x21, 'b') == 'hit'
+  assert c.Direct_Fetch(0) == [1, 0, [0xff552108, 1]]
+
+  assert c.Store(3, 0x88, 'b') == 'hit'
+  assert c.Direct_Fetch(0) == [1, 0, [0x88552108, 1]]
+
+  assert c.Load(0) == HW.Sign_Extend(0x88552108, 32)
+  assert c.Load(0, 'bu') == 0x08
+  assert c.Load(1, 'bu') == 0x21
+  assert c.Load(2, 'bu') == 0x55
+  assert c.Load(3, 'bu') == 0x88
+  assert c.Load(0, 'b') == HW.Sign_Extend(0x08, 8)
+  assert c.Load(1, 'b') == HW.Sign_Extend(0x21, 8)
+  assert c.Load(2, 'b') == HW.Sign_Extend(0x55, 8)
+  assert c.Load(3, 'b') == HW.Sign_Extend(0x88, 8)
 
