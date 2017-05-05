@@ -23,16 +23,24 @@ def Add_Four(input_num):
   return input_num + 4 # Only add 1 for Word Address
 
 
+def Hazard_Detection_Unit(memread, idex_rt, ifid_rs, ifid_rt):
+  if ((memread == 1) and ((idex_rt == ifid_rt) or (idex_rt == ifid_rs))):
+    return 1
+  else:
+    return 0
 def Shift_Left_2(unshifted_num):
   return unshifted_num << 2 # Using Word Addresses
 
 
-def Calculate_Jump_Addr(unshifted_num, next_pc):
+def Calculate_Jump_Addr(unshifted_num, rs_val, next_pc, jr):
   # This takes the place of the shift left 2 and concatenation components on page 271
   # TODO: assert unshifted_num is in bounds (26 bits)
-  mask = 0xF0000000
-  pc_upper = next_pc & mask
-  return (unshifted_num << 2) + pc_upper # Using Word Addresses
+  if jr:
+    return rs_val
+  else:
+    mask = 0xF0000000
+    pc_upper = next_pc & mask
+    return (unshifted_num << 2) + pc_upper # Using Word Addresses
 
 
 def Address_Adder(next_pc, shifted_num):
@@ -44,6 +52,13 @@ def Hazard_Detection_Unit(memread, idex_rt, ifid_rs, ifid_rt):
     return 1
   else:
     return 0
+
+
+def Sign_Extend_Immediate(input_val):
+  if input_val >= 0x8000:
+    return -( (input_val ^ 0xffff) + 1)
+  else:
+    return input_val
 
 
 # see figures 4.56 and 4.57

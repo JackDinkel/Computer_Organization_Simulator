@@ -1,4 +1,4 @@
-from globals import *
+from util import *
 
 REG_DICT = {
   "zero" : 0,

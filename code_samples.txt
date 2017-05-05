@@ -1,161 +1,359 @@
 // ALU, load, store test
-p.Instruction_Memory.Store_Word(0,  0x20080009) # addi t0 zero 0x0009
-p.Instruction_Memory.Store_Word(4,  0x20090008) # addi t1 zero 0x0008
-p.Instruction_Memory.Store_Word(8,  0x200a0007) # addi t2 zero 0x0007
-p.Instruction_Memory.Store_Word(12, 0x200B0050) # addi t3 zero 0x0050
-p.Instruction_Memory.Store_Word(16, 0x200c0005) # addi t4 zero 0x0005
-p.Instruction_Memory.Store_Word(20, 0x200d0004) # addi t5 zero 0x0004
-p.Instruction_Memory.Store_Word(24, 0x01097020) # add t6 t0 t1
-p.Instruction_Memory.Store_Word(28, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(32, 0xAD680000) # sw t0, 0x0(t3)
-p.Instruction_Memory.Store_Word(36, 0x000DC840) # sll t9 t5 0x1
-p.Instruction_Memory.Store_Word(40, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(44, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(48, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(52, 0x8C090050) # lw t1, 0x50(zero)
-p.Instruction_Memory.Store_Word(56, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(60, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(64, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(68, 0x00000000) # nop
+p.Memory.Store_Word(0,  0x20080009) # addi t0 zero 0x0009
+p.Memory.Store_Word(4,  0x20090008) # addi t1 zero 0x0008
+p.Memory.Store_Word(8,  0x200a0007) # addi t2 zero 0x0007
+p.Memory.Store_Word(12, 0x200B0050) # addi t3 zero 0x0050
+p.Memory.Store_Word(16, 0x200c0005) # addi t4 zero 0x0005
+p.Memory.Store_Word(20, 0x200d0004) # addi t5 zero 0x0004
+p.Memory.Store_Word(24, 0x01097020) # add t6 t0 t1
+p.Memory.Store_Word(28, 0x00000000) # nop
+p.Memory.Store_Word(32, 0xAC080050) # sw t0, 0x50(zero)
+p.Memory.Store_Word(36, 0x000DC840) # sll t9 t5 0x1
+p.Memory.Store_Word(40, 0x00000000) # nop
+p.Memory.Store_Word(44, 0x00000000) # nop
+p.Memory.Store_Word(48, 0x00000000) # nop
+p.Memory.Store_Word(52, 0x8C090050) # lw t1, 0x50(zero)
+p.Memory.Store_Word(56, 0x00000000) # nop
+p.Memory.Store_Word(60, 0x00000000) # nop
+p.Memory.Store_Word(64, 0x00000000) # nop
+p.Memory.Store_Word(68, 0x00000000) # nop
+
+// ALU test
+p.Memory.Store_Word(0,  0x2008000F) # addi t0 zero 0xF
+p.Memory.Store_Word(4,  0x20090005) # addi t1 zero 0x5
+p.Memory.Store_Word(8,  0x01095025) # or   t2 t0 t1
+p.Memory.Store_Word(12, 0x01095824) # and  t3 t0 t1
+p.Memory.Store_Word(16, 0x01096027) # nor  t4 t0 t1
+p.Memory.Store_Word(20, 0x01096826) # xor  t5 t0 t1
+p.Memory.Store_Word(24, 0x00087080) # sll  t6 t0 0x2
+p.Memory.Store_Word(28, 0x00087882) # srl  t7 t0 0x2
+p.Memory.Store_Word(32, 0x0128C022) # sub  t8 t1 t0
+p.Memory.Store_Word(36, 0x0128C82A) # slt  t9 t1 t0
+p.Memory.Store_Word(40, 0x00000000) # nop
+p.Memory.Store_Word(44, 0x00000000) # nop
+p.Memory.Store_Word(48, 0x00000000) # nop
+p.Memory.Store_Word(52, 0x00000000) # nop
+p.Memory.Store_Word(56, 0x00000000) # nop
+p.Memory.Store_Word(60, 0x00000000) # nop
+p.Memory.Store_Word(64, 0x00000000) # nop
+p.Memory.Store_Word(68, 0x00000000) # nop
+
+// ALU imm test
+p.Memory.Store_Word(0,  0x2008000F) # addi t0 zero 0xF
+p.Memory.Store_Word(4,  0x20090005) # addi t1 zero 0x5
+p.Memory.Store_Word(8,  0x312A0001) # andi t2 t1 0x1
+p.Memory.Store_Word(12, 0x392B0003) # xori t3 t1 0x3
+p.Memory.Store_Word(16, 0x350C0003) # ori  t4 t0 0x3
+p.Memory.Store_Word(20, 0x292D000F) # slti t5 t1 0xF
+p.Memory.Store_Word(24, 0x00000000) # nop
+p.Memory.Store_Word(28, 0x00000000) # nop
+p.Memory.Store_Word(32, 0x00000000) # nop
+p.Memory.Store_Word(36, 0x00000000) # nop
+p.Memory.Store_Word(40, 0x00000000) # nop
+p.Memory.Store_Word(44, 0x00000000) # nop
+p.Memory.Store_Word(48, 0x00000000) # nop
+p.Memory.Store_Word(52, 0x00000000) # nop
+p.Memory.Store_Word(56, 0x00000000) # nop
+p.Memory.Store_Word(60, 0x00000000) # nop
+p.Memory.Store_Word(64, 0x00000000) # nop
+p.Memory.Store_Word(68, 0x00000000) # nop
+
+// ALU unsigned
+p.Memory.Store_Word(0,  0x2008000F) # addi t0 zero 0x000f
+p.Memory.Store_Word(4,  0x2508FFFF) # addiu t0 t0 0xFFFF
+p.Memory.Store_Word(8,  0x2009F000) # addi t1 zero 0xF000
+p.Memory.Store_Word(12, 0x01285021) # addu t2 t1 t0
+p.Memory.Store_Word(16, 0x01495823) # subu t3 t2 t1
+p.Memory.Store_Word(20, 0x012A602B) # sltu t4 t1 t2
+p.Memory.Store_Word(24, 0x00000000) # nop
+p.Memory.Store_Word(28, 0x00000000) # nop
+p.Memory.Store_Word(32, 0x00000000) # nop
+p.Memory.Store_Word(36, 0x00000000) # nop
+p.Memory.Store_Word(40, 0x00000000) # nop
+p.Memory.Store_Word(44, 0x00000000) # nop
+p.Memory.Store_Word(48, 0x00000000) # nop
+p.Memory.Store_Word(52, 0x00000000) # nop
+p.Memory.Store_Word(56, 0x00000000) # nop
+p.Memory.Store_Word(60, 0x00000000) # nop
+p.Memory.Store_Word(64, 0x00000000) # nop
+p.Memory.Store_Word(68, 0x00000000) # nop
+
+// ALU unsigned hazard
+p.Memory.Store_Word(0,  0x2008000F) # addi t0 zero 0x000f
+p.Memory.Store_Word(4,  0x2508FFFF) # addiu t0 t0 0xFFFF
+p.Memory.Store_Word(8,  0x2009F000) # addi t1 zero 0xF000
+p.Memory.Store_Word(12, 0x01285021) # addu t2 t1 t0
+p.Memory.Store_Word(16, 0x01495823) # subu t3 t2 t1
+p.Memory.Store_Word(20, 0x012A602B) # sltu t4 t1 t2
+p.Memory.Store_Word(24, 0x00000000) # nop
+p.Memory.Store_Word(28, 0x00000000) # nop
+p.Memory.Store_Word(32, 0x00000000) # nop
+p.Memory.Store_Word(36, 0x00000000) # nop
+p.Memory.Store_Word(40, 0x00000000) # nop
+p.Memory.Store_Word(44, 0x00000000) # nop
+p.Memory.Store_Word(48, 0x00000000) # nop
+p.Memory.Store_Word(52, 0x00000000) # nop
+p.Memory.Store_Word(56, 0x00000000) # nop
+p.Memory.Store_Word(60, 0x00000000) # nop
+p.Memory.Store_Word(64, 0x00000000) # nop
+p.Memory.Store_Word(68, 0x00000000) # nop
 
 // branch test
-p.Instruction_Memory.Store_Word(0,  0x20080009) # addi t0 zero 0x0009
-p.Instruction_Memory.Store_Word(4,  0x20090009) # addi t1 zero 0x0009
-p.Instruction_Memory.Store_Word(8,  0x00000000) # nop
-p.Instruction_Memory.Store_Word(12, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(16, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(20, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(24, 0x11090004) # beq t0 t1 0x0004
-p.Instruction_Memory.Store_Word(28, 0x200b0009) # addi t3 zero 0x0009
-p.Instruction_Memory.Store_Word(32, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(36, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(40, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(44, 0x200a0009) # addi t2 zero 0x0009
-p.Instruction_Memory.Store_Word(48, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(52, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(56, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(60, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(64, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(68, 0x00000000) # nop
+p.Memory.Store_Word(0,  0x20080009) # addi t0 zero 0x0009
+p.Memory.Store_Word(4,  0x20090009) # addi t1 zero 0x0009
+p.Memory.Store_Word(8,  0x00000000) # nop
+p.Memory.Store_Word(12, 0x00000000) # nop
+p.Memory.Store_Word(16, 0x00000000) # nop
+p.Memory.Store_Word(20, 0x00000000) # nop
+p.Memory.Store_Word(24, 0x11090004) # beq t0 t1 0x0004
+p.Memory.Store_Word(28, 0x200b0009) # addi t3 zero 0x0009
+p.Memory.Store_Word(32, 0x00000000) # nop
+p.Memory.Store_Word(36, 0x00000000) # nop
+p.Memory.Store_Word(40, 0x00000000) # nop
+p.Memory.Store_Word(44, 0x200a0009) # addi t2 zero 0x0009
+p.Memory.Store_Word(48, 0x00000000) # nop
+p.Memory.Store_Word(52, 0x00000000) # nop
+p.Memory.Store_Word(56, 0x00000000) # nop
+p.Memory.Store_Word(60, 0x00000000) # nop
+p.Memory.Store_Word(64, 0x00000000) # nop
+p.Memory.Store_Word(68, 0x00000000) # nop
+
+// branch backwards w/ hazard and forwarding
+p.Memory.Store_Word(0,  0x00004020) # add t0 zero zero
+p.Memory.Store_Word(4,  0x20090002) # addi t1 zero 0x0002
+p.Memory.Store_Word(8,  0x21080001) # addi t0 t0 0x0001
+p.Memory.Store_Word(12, 0x1509FFFE) # bne t0 t1 0xFFFE
+p.Memory.Store_Word(16, 0x00000000) # nop
+p.Memory.Store_Word(20, 0x00000000) # nop
+p.Memory.Store_Word(24, 0x00000000) # nop
+p.Memory.Store_Word(28, 0x00000000) # nop
+p.Memory.Store_Word(32, 0x00000000) # nop
+p.Memory.Store_Word(36, 0x00000000) # nop
+p.Memory.Store_Word(40, 0x00000000) # nop
+p.Memory.Store_Word(44, 0x00000000) # nop
+p.Memory.Store_Word(48, 0x00000000) # nop
+p.Memory.Store_Word(52, 0x00000000) # nop
+p.Memory.Store_Word(56, 0x00000000) # nop
+p.Memory.Store_Word(60, 0x00000000) # nop
+p.Memory.Store_Word(64, 0x00000000) # nop
+p.Memory.Store_Word(68, 0x00000000) # nop
 
 // forward test
-p.Instruction_Memory.Store_Word(0,  0x20090002) # addi t1 zero 0x0002
-p.Instruction_Memory.Store_Word(4,  0x200a0003) # addi t2 zero 0x0003
-p.Instruction_Memory.Store_Word(8,  0x200b0004) # addi t3 zero 0x0004
-p.Instruction_Memory.Store_Word(12, 0x200c0005) # addi t4 zero 0x0005
-p.Instruction_Memory.Store_Word(16, 0x012A4820) # add t1 t1 t2
-p.Instruction_Memory.Store_Word(20, 0x012B4820) # add t1 t1 t3
-p.Instruction_Memory.Store_Word(24, 0x012C4820) # add t1 t1 t4
-p.Instruction_Memory.Store_Word(28, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(32, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(36, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(40, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(44, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(48, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(52, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(56, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(60, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(64, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(68, 0x00000000) # nop
+p.Memory.Store_Word(0,  0x20090002) # addi t1 zero 0x0002
+p.Memory.Store_Word(4,  0x200a0003) # addi t2 zero 0x0003
+p.Memory.Store_Word(8,  0x200b0004) # addi t3 zero 0x0004
+p.Memory.Store_Word(12, 0x200c0005) # addi t4 zero 0x0005
+p.Memory.Store_Word(16, 0x012A4820) # add t1 t1 t2
+p.Memory.Store_Word(20, 0x012B4820) # add t1 t1 t3
+p.Memory.Store_Word(24, 0x012C4820) # add t1 t1 t4
+p.Memory.Store_Word(28, 0x00000000) # nop
+p.Memory.Store_Word(32, 0x00000000) # nop
+p.Memory.Store_Word(36, 0x00000000) # nop
+p.Memory.Store_Word(40, 0x00000000) # nop
+p.Memory.Store_Word(44, 0x00000000) # nop
+p.Memory.Store_Word(48, 0x00000000) # nop
+p.Memory.Store_Word(52, 0x00000000) # nop
+p.Memory.Store_Word(56, 0x00000000) # nop
+p.Memory.Store_Word(60, 0x00000000) # nop
+p.Memory.Store_Word(64, 0x00000000) # nop
+p.Memory.Store_Word(68, 0x00000000) # nop
 
 // data hazard test
-p.Instruction_Memory.Store_Word(0,  0x20090002) # addi t1 zero 0x0002
-p.Instruction_Memory.Store_Word(4,  0x200a0003) # addi t2 zero 0x0003
-p.Instruction_Memory.Store_Word(8,  0x200b0004) # addi t3 zero 0x0004
-p.Instruction_Memory.Store_Word(12, 0x200c0005) # addi t4 zero 0x0005
-p.Instruction_Memory.Store_Word(16, 0x8C0D0030) # lw t5, 0x30(zero)
-p.Instruction_Memory.Store_Word(20, 0x018D6020) # add t4 t4 t5
-p.Instruction_Memory.Store_Word(24, 0x200e0007) # addi t6 zero 0x0007
-p.Instruction_Memory.Store_Word(28, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(32, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(36, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(40, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(44, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(48, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(52, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(56, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(60, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(64, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(68, 0x00000000) # nop
-p.Data_Memory.Store_Word(48, 0x00000005)
+p.Memory.Store_Word(0,  0x20090002) # addi t1 zero 0x0002
+p.Memory.Store_Word(4,  0x200a0003) # addi t2 zero 0x0003
+p.Memory.Store_Word(8,  0x200b0004) # addi t3 zero 0x0004
+p.Memory.Store_Word(12, 0x200c0005) # addi t4 zero 0x0005
+p.Memory.Store_Word(16, 0x8C0D0050) # lw t5, 0x50(zero)
+p.Memory.Store_Word(20, 0x018D6020) # add t4 t4 t5
+p.Memory.Store_Word(24, 0x218E0002) # addi t6 t4 0x2
+p.Memory.Store_Word(28, 0x00000000) # nop
+p.Memory.Store_Word(32, 0x00000000) # nop
+p.Memory.Store_Word(36, 0x00000000) # nop
+p.Memory.Store_Word(40, 0x00000000) # nop
+p.Memory.Store_Word(44, 0x00000000) # nop
+p.Memory.Store_Word(48, 0x00000000) # nop
+p.Memory.Store_Word(52, 0x00000000) # nop
+p.Memory.Store_Word(56, 0x00000000) # nop
+p.Memory.Store_Word(60, 0x00000000) # nop
+p.Memory.Store_Word(64, 0x00000000) # nop
+p.Memory.Store_Word(68, 0x00000000) # nop
+p.Memory.Store_Word(80, 0x00000005) # data
 
 // branch hazard test (immediate)
-p.Instruction_Memory.Store_Word(0,  0x20080009) # addi t0 zero 0x0009
-p.Instruction_Memory.Store_Word(4,  0x20090009) # addi t1 zero 0x0009
-p.Instruction_Memory.Store_Word(8,  0x11090004) # beq t0 t1 0x0004
-p.Instruction_Memory.Store_Word(12, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(16, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(20, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(24, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(28, 0x200a0009) # addi t2 zero 0x0009
-p.Instruction_Memory.Store_Word(32, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(36, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(40, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(44, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(48, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(52, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(56, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(60, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(64, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(68, 0x00000000) # nop
+p.Memory.Store_Word(0,  0x20080009) # addi t0 zero 0x0009
+p.Memory.Store_Word(4,  0x20090009) # addi t1 zero 0x0009
+p.Memory.Store_Word(8,  0x11280004) # beq t1 t0 0x0004
+p.Memory.Store_Word(12, 0x200b0009) # addi t3 zero 0x0009
+p.Memory.Store_Word(16, 0x00000000) # nop
+p.Memory.Store_Word(20, 0x00000000) # nop
+p.Memory.Store_Word(24, 0x00000000) # nop
+p.Memory.Store_Word(28, 0x200a0009) # addi t2 zero 0x0009
+p.Memory.Store_Word(32, 0x00000000) # nop
+p.Memory.Store_Word(36, 0x00000000) # nop
+p.Memory.Store_Word(40, 0x00000000) # nop
+p.Memory.Store_Word(44, 0x00000000) # nop
+p.Memory.Store_Word(48, 0x00000000) # nop
+p.Memory.Store_Word(52, 0x00000000) # nop
+p.Memory.Store_Word(56, 0x00000000) # nop
+p.Memory.Store_Word(60, 0x00000000) # nop
+p.Memory.Store_Word(64, 0x00000000) # nop
+p.Memory.Store_Word(68, 0x00000000) # nop
 
 // branch hazard test (lw)
-p.Instruction_Memory.Store_Word(0,  0x20080009) # addi t0 zero 0x0009
-p.Instruction_Memory.Store_Word(4,  0x8C0D0030) # lw t5, 0x30(zero)
-p.Instruction_Memory.Store_Word(8,  0x110D0004) # beq t0 t5 0x0004
-p.Instruction_Memory.Store_Word(12, 0x200b0009) # addi t3 zero 0x0009
-p.Instruction_Memory.Store_Word(16, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(20, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(24, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(28, 0x200a0009) # addi t2 zero 0x0009
-p.Instruction_Memory.Store_Word(32, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(36, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(40, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(44, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(48, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(52, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(56, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(60, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(64, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(68, 0x00000000) # nop
-p.Data_Memory.Store_Word(48, 0x00000009)
+p.Memory.Store_Word(0,  0x20080009) # addi t0 zero 0x0009
+p.Memory.Store_Word(4,  0x8C0D0050) # lw t5, 0x50(zero)
+p.Memory.Store_Word(8,  0x110D0004) # beq t0 t5 0x0004
+p.Memory.Store_Word(12, 0x200b0009) # addi t3 zero 0x0009
+p.Memory.Store_Word(16, 0x00000000) # nop
+p.Memory.Store_Word(20, 0x00000000) # nop
+p.Memory.Store_Word(24, 0x00000000) # nop
+p.Memory.Store_Word(28, 0x200a0009) # addi t2 zero 0x0009
+p.Memory.Store_Word(32, 0x00000000) # nop
+p.Memory.Store_Word(36, 0x00000000) # nop
+p.Memory.Store_Word(40, 0x00000000) # nop
+p.Memory.Store_Word(44, 0x00000000) # nop
+p.Memory.Store_Word(48, 0x00000000) # nop
+p.Memory.Store_Word(52, 0x00000000) # nop
+p.Memory.Store_Word(56, 0x00000000) # nop
+p.Memory.Store_Word(60, 0x00000000) # nop
+p.Memory.Store_Word(64, 0x00000000) # nop
+p.Memory.Store_Word(68, 0x00000000) # nop
+p.Memory.Store_Word(80, 0x00000009) # data
 
 // branch forward test
-p.Instruction_Memory.Store_Word(0,  0x20080009) # addi t0 zero 0x0009
-p.Instruction_Memory.Store_Word(4,  0x20090009) # addi t1 zero 0x0009
-p.Instruction_Memory.Store_Word(8,  0x00000000) # nop
-p.Instruction_Memory.Store_Word(12, 0x11090004) # beq t0 t1 0x0004
-p.Instruction_Memory.Store_Word(16, 0x200b0009) # addi t3 zero 0x0009
-p.Instruction_Memory.Store_Word(20, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(24, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(28, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(32, 0x200a0009) # addi t2 zero 0x0009
-p.Instruction_Memory.Store_Word(36, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(40, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(44, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(48, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(52, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(56, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(60, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(64, 0x00000000) # nop
-p.Instruction_Memory.Store_Word(68, 0x00000000) # nop
+p.Memory.Store_Word(0,  0x20080009) # addi t0 zero 0x0009
+p.Memory.Store_Word(4,  0x20090009) # addi t1 zero 0x0009
+p.Memory.Store_Word(8,  0x00000000) # nop
+p.Memory.Store_Word(12, 0x11090004) # beq t0 t1 0x0004
+p.Memory.Store_Word(16, 0x200b0009) # addi t3 zero 0x0009
+p.Memory.Store_Word(20, 0x00000000) # nop
+p.Memory.Store_Word(24, 0x00000000) # nop
+p.Memory.Store_Word(28, 0x00000000) # nop
+p.Memory.Store_Word(32, 0x200a0009) # addi t2 zero 0x0009
+p.Memory.Store_Word(36, 0x00000000) # nop
+p.Memory.Store_Word(40, 0x00000000) # nop
+p.Memory.Store_Word(44, 0x00000000) # nop
+p.Memory.Store_Word(48, 0x00000000) # nop
+p.Memory.Store_Word(52, 0x00000000) # nop
+p.Memory.Store_Word(56, 0x00000000) # nop
+p.Memory.Store_Word(60, 0x00000000) # nop
+p.Memory.Store_Word(64, 0x00000000) # nop
+p.Memory.Store_Word(68, 0x00000000) # nop
+
+// branch (NE) forward test
+p.Memory.Store_Word(0,  0x20080009) # addi t0 zero 0x0009
+p.Memory.Store_Word(4,  0x20090008) # addi t1 zero 0x0008
+p.Memory.Store_Word(8,  0x00000000) # nop
+p.Memory.Store_Word(12, 0x15090004) # bne t0 t1 0x0004
+p.Memory.Store_Word(16, 0x200b0009) # addi t3 zero 0x0009
+p.Memory.Store_Word(20, 0x00000000) # nop
+p.Memory.Store_Word(24, 0x00000000) # nop
+p.Memory.Store_Word(28, 0x00000000) # nop
+p.Memory.Store_Word(32, 0x200a0009) # addi t2 zero 0x0009
+p.Memory.Store_Word(36, 0x00000000) # nop
+p.Memory.Store_Word(40, 0x00000000) # nop
+p.Memory.Store_Word(44, 0x00000000) # nop
+p.Memory.Store_Word(48, 0x00000000) # nop
+p.Memory.Store_Word(52, 0x00000000) # nop
+p.Memory.Store_Word(56, 0x00000000) # nop
+p.Memory.Store_Word(60, 0x00000000) # nop
+p.Memory.Store_Word(64, 0x00000000) # nop
+p.Memory.Store_Word(68, 0x00000000) # nop
 
 // jump test
-p.Instruction_Memory.Store_Word(0,   0x20080009) # addi t0 zero 0x0009
-p.Instruction_Memory.Store_Word(4,   0x20090009) # addi t1 zero 0x0009
-p.Instruction_Memory.Store_Word(8,   0x08000011) # j 0x11
-p.Instruction_Memory.Store_Word(12,  0x00000000) # nop
-p.Instruction_Memory.Store_Word(16,  0x00000000) # nop
-p.Instruction_Memory.Store_Word(20,  0x00000000) # nop
-p.Instruction_Memory.Store_Word(24,  0x00000000) # nop
-p.Instruction_Memory.Store_Word(68,  0x200a0009) # addi t2 zero 0x0009
-p.Instruction_Memory.Store_Word(72,  0x200b0009) # addi t3 zero 0x0009
-p.Instruction_Memory.Store_Word(76,  0x00000000) # nop
-p.Instruction_Memory.Store_Word(80,  0x00000000) # nop
-p.Instruction_Memory.Store_Word(84,  0x00000000) # nop
-p.Instruction_Memory.Store_Word(88,  0x00000000) # nop
-p.Instruction_Memory.Store_Word(92,  0x00000000) # nop
-p.Instruction_Memory.Store_Word(96,  0x00000000) # nop
-p.Instruction_Memory.Store_Word(100,  0x00000000) # nop
-p.Instruction_Memory.Store_Word(104,  0x00000000) # nop
-p.Instruction_Memory.Store_Word(108, 0x00000000) # nop
+p.Memory.Store_Word(0,   0x20080009) # addi t0 zero 0x0009
+p.Memory.Store_Word(4,   0x20090009) # addi t1 zero 0x0009
+p.Memory.Store_Word(8,   0x08000011) # j 0x11
+p.Memory.Store_Word(12,  0x200c0009) # addi t4 zero 0x0009
+p.Memory.Store_Word(16,  0x00000000) # nop
+p.Memory.Store_Word(20,  0x00000000) # nop
+p.Memory.Store_Word(24,  0x00000000) # nop
+p.Memory.Store_Word(68,  0x200a0009) # addi t2 zero 0x0009
+p.Memory.Store_Word(72,  0x200b0009) # addi t3 zero 0x0009
+p.Memory.Store_Word(76,  0x00000000) # nop
+p.Memory.Store_Word(80,  0x00000000) # nop
+p.Memory.Store_Word(84,  0x00000000) # nop
+p.Memory.Store_Word(88,  0x00000000) # nop
+p.Memory.Store_Word(92,  0x00000000) # nop
+p.Memory.Store_Word(96,  0x00000000) # nop
+p.Memory.Store_Word(100, 0x00000000) # nop
+p.Memory.Store_Word(104, 0x00000000) # nop
+p.Memory.Store_Word(108, 0x00000000) # nop
+
+// jal test
+p.Memory.Store_Word(0,   0x20080009) # addi t0 zero 0x0009
+p.Memory.Store_Word(4,   0x20090009) # addi t1 zero 0x0009
+p.Memory.Store_Word(8,   0x0C000011) # jal 0x11
+p.Memory.Store_Word(12,  0x200c0009) # addi t4 zero 0x0009
+p.Memory.Store_Word(16,  0x00000000) # nop
+p.Memory.Store_Word(20,  0x00000000) # nop
+p.Memory.Store_Word(24,  0x00000000) # nop
+p.Memory.Store_Word(68,  0x200a0009) # addi t2 zero 0x0009
+p.Memory.Store_Word(72,  0x200b0009) # addi t3 zero 0x0009
+p.Memory.Store_Word(76,  0x00000000) # nop
+p.Memory.Store_Word(80,  0x00000000) # nop
+p.Memory.Store_Word(84,  0x00000000) # nop
+p.Memory.Store_Word(88,  0x00000000) # nop
+p.Memory.Store_Word(92,  0x00000000) # nop
+p.Memory.Store_Word(96,  0x00000000) # nop
+p.Memory.Store_Word(100, 0x00000000) # nop
+p.Memory.Store_Word(104, 0x00000000) # nop
+p.Memory.Store_Word(108, 0x00000000) # nop
+
+// jr test (w/ hazard)
+p.Memory.Store_Word(0,   0x20080009) # addi t0 zero 0x0009
+p.Memory.Store_Word(4,   0x20090044) # addi t1 zero 0x0044
+p.Memory.Store_Word(8,   0x01200008) # jr t1
+p.Memory.Store_Word(12,  0x200c0009) # addi t4 zero 0x0009
+p.Memory.Store_Word(16,  0x00000000) # nop
+p.Memory.Store_Word(20,  0x00000000) # nop
+p.Memory.Store_Word(24,  0x00000000) # nop
+p.Memory.Store_Word(68,  0x200a0009) # addi t2 zero 0x0009
+p.Memory.Store_Word(72,  0x200b0009) # addi t3 zero 0x0009
+p.Memory.Store_Word(76,  0x00000000) # nop
+p.Memory.Store_Word(80,  0x00000000) # nop
+p.Memory.Store_Word(84,  0x00000000) # nop
+p.Memory.Store_Word(88,  0x00000000) # nop
+p.Memory.Store_Word(92,  0x00000000) # nop
+p.Memory.Store_Word(96,  0x00000000) # nop
+p.Memory.Store_Word(100, 0x00000000) # nop
+p.Memory.Store_Word(104, 0x00000000) # nop
+p.Memory.Store_Word(108, 0x00000000) # nop
+
+// movz movn test
+p.Memory.Store_Word(0,   0x20080000) # addi t0 zero 0x0000
+p.Memory.Store_Word(4,   0x20090044) # addi t1 zero 0x0044
+p.Memory.Store_Word(8,   0x200a0009) # addi t2 zero 0x0009
+p.Memory.Store_Word(12,  0x200d0000) # addi t5 zero 0x0000
+p.Memory.Store_Word(16,  0x0148580B) # movn t3 t2 t0
+p.Memory.Store_Word(20,  0x0149600B) # movn t4 t2 t1
+p.Memory.Store_Word(24,  0x0149680A) # movz t5 t2 t1
+p.Memory.Store_Word(28,  0x0148700A) # movz t6 t2 t0
+p.Memory.Store_Word(32,  0x00000000) # nop
+p.Memory.Store_Word(36,  0x00000000) # nop
+p.Memory.Store_Word(40,  0x00000000) # nop
+p.Memory.Store_Word(44,  0x00000000) # nop
+p.Memory.Store_Word(48,  0x00000000) # nop
+p.Memory.Store_Word(52,  0x00000000) # nop
+p.Memory.Store_Word(56,  0x00000000) # nop
+p.Memory.Store_Word(60,  0x00000000) # nop
+p.Memory.Store_Word(64,  0x00000000) # nop
+p.Memory.Store_Word(68,  0x00000000) # nop
+
+// bgtz bltz blez test
+p.Memory.Store_Word(0,  0x20080009) # addi t0 zero 0x0009
+p.Memory.Store_Word(4,  0x8C0D0050) # lw t5, 0x50(zero)
+p.Memory.Store_Word(8,  0x1DA00004) # bgtz t5 0x0004
+p.Memory.Store_Word(12, 0x200b0009) # addi t3 zero 0x0009
+p.Memory.Store_Word(28, 0x200a0009) # addi t2 zero 0x0009
+p.Memory.Store_Word(32, 0x19400004) # blez t2 0x0004
+p.Memory.Store_Word(36, 0x200c0009) # addi t4 zero 0x0009
+p.Memory.Store_Word(40, 0x04000020) # bltz zero 0x20
+p.Memory.Store_Word(44, 0x200EFFFF) # addi t6 zero 0xFFFF
+p.Memory.Store_Word(48, 0x05C00020) # bltz t6 0x20
+p.Memory.Store_Word(52, 0x00000000) # nop
+p.Memory.Store_Word(56, 0x00000000) # nop
+p.Memory.Store_Word(60, 0x00000000) # nop
+p.Memory.Store_Word(64, 0x00000000) # nop
+p.Memory.Store_Word(68, 0x00000000) # nop
+p.Memory.Store_Word(80, 0x00000009) # data

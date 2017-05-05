@@ -1,6 +1,6 @@
 
 ALU_DICT = {
-  "J"     : 0,
+  "X"     : 0,
   "AND"   : 1,
   "OR"    : 2,
   "ADD"   : 3,
@@ -31,7 +31,9 @@ ALU_DICT = {
   "J"     : 28,
   "JAL"   : 29,
   "BEQ"   : 30,
-  "BNE"   : 31
+  "BNE"   : 31,
+  "JR"    : 32,
+  "ADDIU" : 33
 }
 
 class EXControl(object):
@@ -84,18 +86,16 @@ def displayControl(exc, memc, wbc):
 def updateControl(op, funct, exc, memc, wbc):
   # TODO: Assert on bounds
   if op == 0x00: # RTYPE
-    print "rtype"
-    exc.RegDst   = 1
+    exc.RegDst    = 1
     memc.Branch   = 0
     memc.Jump     = 0
     memc.MemRead  = 0
-    wbc.MemToReg = 0
+    wbc.MemToReg  = 0
     memc.MemWrite = 0
     exc.ALUSrc1  = 0
     exc.ALUSrc2  = 0
     wbc.RegWrite = 1
     exc.ALUOp    = funct_dic[funct]
-    print exc.ALUOp
 
   elif op == 0x01: # BLTZ
     exc.RegDst   = 0
@@ -110,11 +110,11 @@ def updateControl(op, funct, exc, memc, wbc):
     exc.ALUOp    = ALU_DICT["BLTZ"]
 
   elif op == 0x02: # J
-    exc.RegDst   = 0
+    exc.RegDst    = 0
     memc.Branch   = 0
     memc.Jump     = 1
     memc.MemRead  = 0
-    wbc.MemToReg = 0
+    wbc.MemToReg  = 0
     memc.MemWrite = 0
     exc.ALUSrc1  = 0
     exc.ALUSrc2  = 1
@@ -122,11 +122,11 @@ def updateControl(op, funct, exc, memc, wbc):
     exc.ALUOp    = ALU_DICT["J"]
 
   elif op == 0x03: # JAL
-    exc.RegDst   = 0
+    exc.RegDst    = 0
     memc.Branch   = 0
     memc.Jump     = 1
     memc.MemRead  = 0
-    wbc.MemToReg = 0
+    wbc.MemToReg  = 0
     memc.MemWrite = 0
     exc.ALUSrc1  = 0
     exc.ALUSrc2  = 1
@@ -134,11 +134,11 @@ def updateControl(op, funct, exc, memc, wbc):
     exc.ALUOp    = ALU_DICT["JAL"]
 
   elif op == 0x04: # BEQ
-    exc.RegDst   = 0
+    exc.RegDst    = 0
     memc.Branch   = 1
     memc.Jump     = 0
     memc.MemRead  = 0
-    wbc.MemToReg = 0
+    wbc.MemToReg  = 0
     memc.MemWrite = 0
     exc.ALUSrc1  = 0
     exc.ALUSrc2  = 1
@@ -146,16 +146,39 @@ def updateControl(op, funct, exc, memc, wbc):
     exc.ALUOp    = ALU_DICT["BEQ"]
 
   elif op == 0x05: # BNE
-    exc.RegDst   = 0
+    exc.RegDst    = 0
     memc.Branch   = 1
     memc.Jump     = 0
     memc.MemRead  = 0
-    wbc.MemToReg = 0
+    wbc.MemToReg  = 0
+    memc.MemWrite = 0
+    exc.ALUSrc    = 1
+    wbc.RegWrite  = 0
+    exc.ALUOp     = ALU_DICT["X"]
+
+  elif op == 0x06: # BLEZ
+    exc.RegDst    = 0
+    memc.Branch   = 1
+    memc.Jump     = 0
+    memc.MemRead  = 0
+    wbc.MemToReg  = 0
+    memc.MemWrite = 0
+    exc.ALUSrc    = 1
+    wbc.RegWrite  = 0
+    exc.ALUOp     = ALU_DICT["BLEZ"]
+    pass
+
+  elif op == 0x07: # BGTZ
+    exc.RegDst    = 0
+    memc.Branch   = 1
+    memc.Jump     = 0
+    memc.MemRead  = 0
+    wbc.MemToReg  = 0
     memc.MemWrite = 0
     exc.ALUSrc1  = 0
     exc.ALUSrc2  = 1
     wbc.RegWrite = 0
-    exc.ALUOp    = ALU_DICT["BNE"]
+    exc.ALUOp    = ALU_DICT["BGTZ"]
 
   elif op == 0x06: # BLEZ
     exc.RegDst   = 0
@@ -182,11 +205,11 @@ def updateControl(op, funct, exc, memc, wbc):
     exc.ALUOp    = ALU_DICT["BGTZ"]
 
   elif op == 0x08: # ADDI
-    exc.RegDst   = 0
+    exc.RegDst    = 0
     memc.Branch   = 0
     memc.Jump     = 0
     memc.MemRead  = 0
-    wbc.MemToReg = 0
+    wbc.MemToReg  = 0
     memc.MemWrite = 0
     exc.ALUSrc1  = 0
     exc.ALUSrc2  = 1
@@ -194,11 +217,11 @@ def updateControl(op, funct, exc, memc, wbc):
     exc.ALUOp    = ALU_DICT["ADD"]
 
   elif op == 0x09: # ADDIU
-    exc.RegDst   = 0
+    exc.RegDst    = 0
     memc.Branch   = 0
     memc.Jump     = 0
     memc.MemRead  = 0
-    wbc.MemToReg = 0
+    wbc.MemToReg  = 0
     memc.MemWrite = 0
     exc.ALUSrc1  = 0
     exc.ALUSrc2  = 1
@@ -206,11 +229,11 @@ def updateControl(op, funct, exc, memc, wbc):
     exc.ALUOp    = ALU_DICT["ADDU"]
 
   elif op == 0x0A: # SLTI
-    exc.RegDst   = 0
+    exc.RegDst    = 0
     memc.Branch   = 0
     memc.Jump     = 0
     memc.MemRead  = 0
-    wbc.MemToReg = 0
+    wbc.MemToReg  = 0
     memc.MemWrite = 0
     exc.ALUSrc1  = 0
     exc.ALUSrc2  = 1
@@ -218,11 +241,11 @@ def updateControl(op, funct, exc, memc, wbc):
     exc.ALUOp    = ALU_DICT["SLT"]
 
   elif op == 0x0B: # SLTIU
-    exc.RegDst   = 0
+    exc.RegDst    = 0
     memc.Branch   = 0
     memc.Jump     = 0
     memc.MemRead  = 0
-    wbc.MemToReg = 0
+    wbc.MemToReg  = 0
     memc.MemWrite = 0
     exc.ALUSrc1  = 0
     exc.ALUSrc2  = 1
@@ -230,11 +253,11 @@ def updateControl(op, funct, exc, memc, wbc):
     exc.ALUOp    = ALU_DICT["SLTU"]
 
   elif op == 0x0C: # ANDI
-    exc.RegDst   = 0
+    exc.RegDst    = 0
     memc.Branch   = 0
     memc.Jump     = 0
     memc.MemRead  = 0
-    wbc.MemToReg = 0
+    wbc.MemToReg  = 0
     memc.MemWrite = 0
     exc.ALUSrc1  = 0
     exc.ALUSrc2  = 1
@@ -242,11 +265,11 @@ def updateControl(op, funct, exc, memc, wbc):
     exc.ALUOp    = ALU_DICT["AND"]
 
   elif op == 0x0D: # ORI
-    exc.RegDst   = 0
+    exc.RegDst    = 0
     memc.Branch   = 0
     memc.Jump     = 0
     memc.MemRead  = 0
-    wbc.MemToReg = 0
+    wbc.MemToReg  = 0
     memc.MemWrite = 0
     exc.ALUSrc1  = 0
     exc.ALUSrc2  = 1
@@ -266,7 +289,34 @@ def updateControl(op, funct, exc, memc, wbc):
     exc.ALUOp    = ALU_DICT["XOR"]
 
   elif op == 0x0F: # LUI
-    exc.RegDst   = 0
+    exc.RegDst    = 0
+    memc.Branch   = 0
+    memc.Jump     = 0
+    memc.MemRead  = 0
+    wbc.MemToReg  = 0
+    memc.MemWrite = 0
+    exc.ALUSrc1   = 0
+    exc.ALUSrc2   = 1
+    wbc.RegWrite  = 1
+    exc.ALUOp     = ALU_DICT["LUI"] # TODO: whyyy was AluSrc1 = 1 ???
+
+  elif op == 0x1F: # SEP TODO
+    pass
+
+  elif op == 0x20: # LB
+    exc.RegDst    = 0
+    memc.Branch   = 0
+    memc.Jump     = 0
+    memc.MemRead  = 1
+    wbc.MemToReg  = 1
+    memc.MemWrite = 0
+    exc.ALUSrc1   = 0
+    exc.ALUSrc2   = 1
+    wbc.RegWrite  = 1
+    exc.ALUOp     = ALU_DICT["LB"]
+
+  elif op == 0x21: # LH
+    exc.RegDst    = 0
     memc.Branch   = 0
     memc.Jump     = 0
     memc.MemRead  = 0
@@ -275,7 +325,7 @@ def updateControl(op, funct, exc, memc, wbc):
     exc.ALUSrc1  = 1
     exc.ALUSrc2  = 1
     wbc.RegWrite = 1
-    exc.ALUOp    = ALU_DICT["LUI"]
+    exc.ALUOp    = ALU_DICT["LH"]
 
   elif op == 0x1F: # SEP TODO
     pass
@@ -297,7 +347,7 @@ def updateControl(op, funct, exc, memc, wbc):
     memc.Branch   = 0
     memc.Jump     = 0
     memc.MemRead  = 1
-    wbc.MemToReg = 1
+    wbc.MemToReg  = 1
     memc.MemWrite = 0
     exc.ALUSrc1  = 0
     exc.ALUSrc2  = 1
@@ -305,11 +355,11 @@ def updateControl(op, funct, exc, memc, wbc):
     exc.ALUOp    = ALU_DICT["LH"]
 
   elif op == 0x23: # LW
-    exc.RegDst   = 0
+    exc.RegDst    = 0
     memc.Branch   = 0
     memc.Jump     = 0
     memc.MemRead  = 1
-    wbc.MemToReg = 1
+    wbc.MemToReg  = 1
     memc.MemWrite = 0
     exc.ALUSrc1  = 0
     exc.ALUSrc2  = 1
@@ -317,11 +367,11 @@ def updateControl(op, funct, exc, memc, wbc):
     exc.ALUOp    = ALU_DICT["LW"]
 
   elif op == 0x24: # LBU
-    exc.RegDst   = 0
+    exc.RegDst    = 0
     memc.Branch   = 0
     memc.Jump     = 0
     memc.MemRead  = 1
-    wbc.MemToReg = 1
+    wbc.MemToReg  = 1
     memc.MemWrite = 0
     exc.ALUSrc1  = 0
     exc.ALUSrc2  = 1
@@ -329,11 +379,11 @@ def updateControl(op, funct, exc, memc, wbc):
     exc.ALUOp    = ALU_DICT["LBU"]
 
   elif op == 0x25: # LHU
-    exc.RegDst   = 0
+    exc.RegDst    = 0
     memc.Branch   = 0
     memc.Jump     = 0
     memc.MemRead  = 1
-    wbc.MemToReg = 1
+    wbc.MemToReg  = 1
     memc.MemWrite = 0
     exc.ALUSrc1  = 0
     exc.ALUSrc2  = 1
@@ -341,11 +391,11 @@ def updateControl(op, funct, exc, memc, wbc):
     exc.ALUOp    = ALU_DICT["LHU"]
 
   elif op == 0x28: # SB
-    exc.RegDst   = 0
+    exc.RegDst    = 0
     memc.Branch   = 0
     memc.Jump     = 0
     memc.MemRead  = 0
-    wbc.MemToReg = 0
+    wbc.MemToReg  = 0
     memc.MemWrite = 1
     exc.ALUSrc1  = 0
     exc.ALUSrc2  = 1
@@ -353,11 +403,11 @@ def updateControl(op, funct, exc, memc, wbc):
     exc.ALUOp    = ALU_DICT["SB"]
 
   elif op == 0x29: # SH
-    exc.RegDst   = 0
+    exc.RegDst    = 0
     memc.Branch   = 0
     memc.Jump     = 0
     memc.MemRead  = 0
-    wbc.MemToReg = 0
+    wbc.MemToReg  = 0
     memc.MemWrite = 1
     exc.ALUSrc1  = 0
     exc.ALUSrc2  = 1
@@ -365,11 +415,11 @@ def updateControl(op, funct, exc, memc, wbc):
     exc.ALUOp    = ALU_DICT["SH"]
 
   elif op == 0x2B: # SW
-    exc.RegDst   = 0
+    exc.RegDst    = 0
     memc.Branch   = 0
     memc.Jump     = 0
     memc.MemRead  = 0
-    wbc.MemToReg = 0
+    wbc.MemToReg  = 0
     memc.MemWrite = 1
     exc.ALUSrc1  = 0
     exc.ALUSrc2  = 1

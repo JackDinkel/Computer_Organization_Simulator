@@ -64,6 +64,9 @@ class memory(object):
                   )
 
 
+  def Direct_Load(self, address):
+    return self.__data_cache.Direct_Load(address)
+
 
   def Data_Operate(self, address, write_data, MemRead, MemWrite, Op):
     read_data = 0

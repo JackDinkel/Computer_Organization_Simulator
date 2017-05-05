@@ -2,8 +2,6 @@ from control import ALU_DICT
 from util import *
 
 def ALU(input1, input2, shamt, ALUControl):
-  print "AluControl:", ALUControl
-  print "ALU+DICT[j]", ALU_DICT["J"]
   if   ALUControl == ALU_DICT["J"]:
     return 0, 1, 0
   elif ALUControl == ALU_DICT["AND"]:

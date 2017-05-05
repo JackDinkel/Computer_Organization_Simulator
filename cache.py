@@ -85,6 +85,11 @@ class Direct_Cache(object):
     return self.__data[index]
 
 
+  def Direct_Load(self, address):
+    tag, index, word_offset = self.Address_Decode(address)
+    return self.__data[index][2][word_offset] # Load word
+
+
   def display(self):
     print self.__data
 
