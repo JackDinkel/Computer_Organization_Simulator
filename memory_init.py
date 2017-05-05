@@ -18,24 +18,24 @@ class memory(object):
 
     # Set up direct cache
     if cache_type == 'direct':
-      self.__main_memory = m.Memory(mem_size, mem_contents)
+      self.main_memory = m.Memory(mem_size, mem_contents)
 
-      self.__data_cache  = cache.Direct_Cache(data_cache_blocks,
+      self.data_cache  = cache.Direct_Cache(data_cache_blocks,
                                               data_cache_words,
                                               cache_write_policy,
-                                              self.__main_memory
+                                              self.main_memory
                                               )
 
-      self.__instr_cache = cache.Direct_Cache(instr_cache_blocks,
+      self.instr_cache = cache.Direct_Cache(instr_cache_blocks,
                                               instr_cache_words,
                                               cache_write_policy,
-                                              self.__main_memory
+                                              self.main_memory
                                               )
 
     # Set up only memory
     elif cache_type == 'none':
-      __data_cache = m.Memory(mem_size, mem_contents)
-      __instr_cache = __data_cache
+      data_cache = m.Memory(mem_size, mem_contents)
+      instr_cache = data_cache
 
     else:
       assert 0 == 1, "invalid cache type: %s" % cache_type
@@ -65,7 +65,7 @@ class memory(object):
 
 
   def Direct_Load(self, address):
-    return self.__data_cache.Direct_Load(address)
+    return self.main_memory.Direct_Fetch(address)
 
 
   def Data_Operate(self, address, write_data, MemRead, MemWrite, Op):
@@ -98,9 +98,9 @@ class memory(object):
     read_data = 0
 
     if MemRead:
-      read_data = self.__instr_cache.Load(address)
+      read_data = self.instr_cache.Load(address)
     if MemWrite:
-      self.__instr_cache.Store(address, write_data)
+      self.instr_cache.Store(address, write_data)
 
     return read_data
 

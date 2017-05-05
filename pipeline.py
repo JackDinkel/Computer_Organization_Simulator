@@ -93,7 +93,7 @@ class Pipeline(object):
 
 
         def __init__(self, memory = []):
-          memory = memory_init.memory(CACHE_TYPE,
+          self.Memory = memory_init.memory(CACHE_TYPE,
                                       CACHE_WRITE_POLICY,
                                       DATA_CACHE_BLOCKS,
                                       DATA_CACHE_WORDS,
@@ -102,6 +102,7 @@ class Pipeline(object):
                                       MEM_SIZE,
                                       memory
                                      )
+
          
 
 	def pipelineLoop(self):

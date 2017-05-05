@@ -199,7 +199,7 @@ class Direct_Cache(object):
     # Cache miss
     if not self.Validate(index):
       self.Load_Block_From_Memory(address)
-      return "miss" # TODO: Probably also need to return number of cycles penalized
+      # TODO: Probably also need to return number of cycles penalized
 
     # Need to evict
     if not self.Matching_Tags(index, tag):
@@ -216,6 +216,7 @@ class Direct_Cache(object):
 
       word = self.__data[index][2][word_offset]
       self.__data[index][2][word_offset] = mask.Insert_Half(word, data, address_offset)
+      # TODO: Need to return number of cycles penalized
 
     # Write a byte
     elif data_type == 'b':
@@ -231,7 +232,8 @@ class Direct_Cache(object):
     if self.write_policy == "through":
       self.Store_Block_To_Memory(address)
 
-    return 'hit'
+    #  Return cycle penalty
+
 
 
   def Load(self, address, data_type = 'w'):
@@ -245,7 +247,7 @@ class Direct_Cache(object):
     # Cache miss
     if not self.Validate(index):
       self.Load_Block_From_Memory(address)
-      return "miss" # TODO: Probably also need to return number of cycles penalized
+      # TODO: Need to return number of cycles penalized
 
     ## Cache hit, fetch
     word = self.__data[index][2][word_offset] # Load word
