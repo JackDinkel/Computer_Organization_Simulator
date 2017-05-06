@@ -33,7 +33,8 @@ ALU_DICT = {
   "BEQ"   : 30,
   "BNE"   : 31,
   "JR"    : 32,
-  "ADDIU" : 33
+  "ADDIU" : 33,
+  "SEB"   : 34
 }
 
 class EXControl(object):
@@ -258,10 +259,18 @@ def updateControl(op, funct, exc, memc, wbc):
     memc.MemWrite = 0
     exc.ALUSrc    = 1
     wbc.RegWrite  = 1
-    exc.ALUOp     = ALU_DICT["LUI"] # TODO: whyyy was AluSrc1 = 1 ???
+    exc.ALUOp     = ALU_DICT["LUI"]
 
-  elif op == 0x1F: # SEP TODO
-    pass
+  elif op == 0x1F: # SEB TODO
+    exc.RegDst    = 1
+    memc.Branch   = 0
+    memc.Jump     = 0
+    memc.MemRead  = 0
+    wbc.MemToReg  = 0
+    memc.MemWrite = 0
+    exc.ALUSrc    = 0
+    wbc.RegWrite  = 1
+    exc.ALUOp     = ALU_DICT["SEB"]
 
   elif op == 0x20: # LB
     exc.RegDst    = 0

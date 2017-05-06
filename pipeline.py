@@ -4,33 +4,44 @@ from register import REG_DICT
 from opcode import *
 from control import *
 from decode import *
+import memory_init
+
+#constants
+CACHE_TYPE = "direct"
+CACHE_WRITE_POLICY = "through"
+DATA_CACHE_BLOCKS = 8
+DATA_CACHE_WORDS = 2 
+INSTR_CACHE_BLOCKS = 8
+INSTR_CACHE_WORDS = 2
+MEM_SIZE = 1200
 
 # test function
 def pipelineMain():
-	p = Pipeline([])
-
-	# initialize pc to zero
-	p.IFID.pc_out = 0x00000000 
-
 	# initialize some code
-	p.Memory.Store_Word(0,  0x00000000) # nop
-	p.Memory.Store_Word(4,  0x00000000) # nop
-	p.Memory.Store_Word(8,  0x00000000) # nop
-	p.Memory.Store_Word(12, 0x00000000) # nop
-	p.Memory.Store_Word(16, 0x006C1821) # addu v1 v1 t4
-	p.Memory.Store_Word(20, 0x00831821) # addu v1 a0 v1
-	p.Memory.Store_Word(24, 0x00000000) # nop
-	p.Memory.Store_Word(28, 0x00000000) # nop
-	p.Memory.Store_Word(32, 0x00000000) # nop
-	p.Memory.Store_Word(36, 0x00000000) # nop
-	p.Memory.Store_Word(40, 0x00000000) # nop
-	p.Memory.Store_Word(44, 0x00000000) # nop
-	p.Memory.Store_Word(48, 0x00000000) # nop
-	p.Memory.Store_Word(52, 0x00000000) # nop
-	p.Memory.Store_Word(56, 0x00000000) # nop
-	p.Memory.Store_Word(60, 0x00000000) # nop
-	p.Memory.Store_Word(64, 0x00000000) # nop
-	p.Memory.Store_Word(68, 0x00000000) # nop
+	mem_list = [
+		0x20080009, # addi t0 zero 0x0009
+		0x8C0D0050, # lw t5, 0x50(zero)
+		0x110D0004, # beq t0 t5 0x0004
+		0x200b0009, # addi t3 zero 0x0009
+		0x00000000, # nop
+		0x00000000, # nop
+		0x00000000, # nop
+		0x200a0009, # addi t2 zero 0x0009
+		0x00000000, # nop
+		0x00000000, # nop
+		0x00000000, # nop
+		0x00000000, # nop
+		0x00000000, # nop
+		0x00000000, # nop
+		0x00000000, # nop
+		0x00000000, # nop
+		0x00000000, # nop
+		0x00000000  # nop
+	]
+
+	p = Pipeline(mem_list)
+	p.IFID.pc_out = 0x00000000
+	p.Memory.Direct_Store(80, 9)
 
 	# start pipeline
 	for i in range(1,20):
@@ -59,8 +70,9 @@ class Pipeline(object):
 	MEMWB = pipeline_reg.MEMWB()
 
 	# state elements
+	Memory = memory_init.memory(CACHE_TYPE, CACHE_WRITE_POLICY, DATA_CACHE_BLOCKS, 
+		DATA_CACHE_WORDS, INSTR_CACHE_BLOCKS, INSTR_CACHE_WORDS, MEM_SIZE)
 	PC = 20
-	Memory = HW.Memory([], MEM_SIZE)
 	Register_File = HW.Register_File()
 
 	# non-register signals
@@ -69,8 +81,9 @@ class Pipeline(object):
 	PCSrcJ = 0
 	CycleCount = 0
 
-	def __init__(self, program):
-		self.Memory = HW.Memory(program, self.MEM_SIZE)
+	def __init__(self, memory = []):
+		self.Memory = memory_init.memory(CACHE_TYPE, CACHE_WRITE_POLICY, DATA_CACHE_BLOCKS,
+			DATA_CACHE_WORDS, INSTR_CACHE_BLOCKS, INSTR_CACHE_WORDS, MEM_SIZE, memory)
 
 	def pipelineLoop(self):
 		while self.PC != 0 and self.CycleCount < 2000000:
@@ -105,9 +118,9 @@ class Pipeline(object):
 		print "ra: %d" % self.Register_File.Get(REG_DICT["ra"])
 
 	def displayResult(self):
-		print "Mem[6] = %d" % self.Memory.Load_Word(24)
-		print "Mem[7] = %d" % self.Memory.Load_Word(28)
-		print "Mem[8] = %d" % self.Memory.Load_Word(32)
+		print "Mem[6] = %d" % self.Memory.Direct_Load(24)
+		print "Mem[7] = %d" % self.Memory.Direct_Load(28)
+		print "Mem[8] = %d" % self.Memory.Direct_Load(32)
 		print "Cycles = %d" % self.CycleCount
 
 	def IF(self):
@@ -117,6 +130,8 @@ class Pipeline(object):
 			self.PCSrc, self.PCSrcJ)
 
 		instruction_temp.word = self.Memory.Instruction_Operate(self.PC, 0, 1, 0)
+
+		#print "%d, %s" % (self.PC, format(instruction_temp.word, '#04x'))
 
 		if self.CycleCount > 369410:
 			print "%d, %s" % (self.PC, format(instruction_temp.word, '#04x'))
@@ -328,9 +343,9 @@ if __name__ == "__main__":
 		
 		# initialize
 		pipeline = Pipeline(program)
-		pipeline.Register_File.Set(REG_DICT["sp"], pipeline.Memory.Load_Word(0))
-		pipeline.Register_File.Set(REG_DICT["fp"], pipeline.Memory.Load_Word(4))
-		pipeline.IFID.pc_out = pipeline.Memory.Load_Word(20)*4
+		pipeline.Register_File.Set(REG_DICT["sp"], pipeline.Memory.Direct_Load(0))
+		pipeline.Register_File.Set(REG_DICT["fp"], pipeline.Memory.Direct_Load(4))
+		pipeline.IFID.pc_out = pipeline.Memory.Direct_Load(20)*4
 
 		# run
 		pipeline.pipelineLoop()

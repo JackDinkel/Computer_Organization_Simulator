@@ -326,7 +326,6 @@ def ALU_Input_Mux2(register, sign_extended, ALUSrc2):
 
 
 def ALU(input1, input2, shamt, ALUControl):
-  # TODO: How does this interface with ALU Control? What is the zero Zero line on page 265?
   if   ALUControl == ALU_DICT["X"]:
     return 0, 0, 0
   elif ALUControl == ALU_DICT["JR"]:
@@ -340,7 +339,7 @@ def ALU(input1, input2, shamt, ALUControl):
     input2 = twos_comp(input2, 32)
     return input1 + input2, 0, 0
   elif ALUControl == ALU_DICT["ADDU"]:
-    return unsigned(input1, 32) + unsigned(input2, 32), 0, 0 # TODO
+    return unsigned(input1, 32) + unsigned(input2, 32), 0, 0
   elif ALUControl == ALU_DICT["ADDIU"]:
     return unsigned(input1, 32) + input2, 0, 0
   elif ALUControl == ALU_DICT["SUB"]:
@@ -348,15 +347,15 @@ def ALU(input1, input2, shamt, ALUControl):
     input2 = twos_comp(input2, 32)
     return input1 - input2, 0, 0
   elif ALUControl == ALU_DICT["SUBU"]:
-    return unsigned(input1, 32) - unsigned(input2, 32), 0, 0 # TODO
+    return unsigned(input1, 32) - unsigned(input2, 32), 0, 0
   elif ALUControl == ALU_DICT["SLL"]:
     return input2 << shamt, 0, 0
   elif ALUControl == ALU_DICT["SRL"]:
     return logical_rshift(input2, shamt), 0, 0
   elif ALUControl == ALU_DICT["SLT"]:
-    return ( input1 < input2 ), 0, 1 # TODO
+    return ( input1 < input2 ), 0, 1
   elif ALUControl == ALU_DICT["SLTU"]:
-    return ( unsigned(input1, 32) < unsigned(input2, 32) ), 0, 1 # TODO
+    return ( unsigned(input1, 32) < unsigned(input2, 32) ), 0, 1
   elif ALUControl == ALU_DICT["NOT"]:
     return ~input1, 0, 0
   elif ALUControl == ALU_DICT["LW"]:
@@ -380,9 +379,9 @@ def ALU(input1, input2, shamt, ALUControl):
   elif ALUControl == ALU_DICT["NOR"]:
     return ~(input1 | input2), 0, 0
   elif ALUControl == ALU_DICT["MOVZ"]:
-    return (input1, 0, 1) if input2 == 0 else (0, 0, 0) # TODO
+    return (input1, 0, 1) if input2 == 0 else (0, 0, 0)
   elif ALUControl == ALU_DICT["MOVN"]:
-    return (input1, 0, 1) if input2 != 0 else (0, 0, 0) # TODO
+    return (input1, 0, 1) if input2 != 0 else (0, 0, 0)
   elif ALUControl == ALU_DICT["XOR"]:
     return (input1 ^ input2), 0, 0
   elif ALUControl == ALU_DICT["BLTZ"]:
@@ -394,11 +393,13 @@ def ALU(input1, input2, shamt, ALUControl):
   elif ALUControl == ALU_DICT["J"]:
     return 0, 0, 0
   elif ALUControl == ALU_DICT["JAL"]:
-    return 0, 0, 1 # TODO
+    return 0, 0, 1
   elif ALUControl == ALU_DICT["BEQ"]:
     return (0, 0, 1) if input1 == input2 else (0, 0, 0)
   elif ALUControl == ALU_DICT["BNE"]:
     return (0, 0, 1) if input1 != input2 else (0, 0, 0)
+  elif ALUControl == ALU_DICT["SEB"]:
+    return (input1, 0, 0) if (input1 & 0x80 == 1) else (input1 - 0x100, 0, 0)
   else:
     assert 1 == 2, "Invalid Operation: %s" % ALUControl
 
